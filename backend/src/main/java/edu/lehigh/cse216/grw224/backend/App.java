@@ -17,6 +17,23 @@ import java.util.Map;
  * For now, our app creates an HTTP server that can only get and add data.
  */
 public class App {
+    /**
+    * Get an integer environment varible if it exists, and otherwise return the
+    * default value.
+    * 
+    * @envar      The name of the environment variable to get.
+    * @defaultVal The integer value to use as the default if envar isn't found
+    * 
+    * @returns The best answer we could come up with for a value for envar
+    */
+    static int getIntFromEnv(String envar, int defaultVal) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get(envar) != null) {
+            return Integer.parseInt(processBuilder.environment().get(envar));
+        }
+        return defaultVal;
+    }
+    
     public static void main(String[] args) {
         // get the Postgres configuration from the environment
         Map<String, String> env = System.getenv();
@@ -24,6 +41,9 @@ public class App {
         String port = env.get("POSTGRES_PORT");
         String user = env.get("POSTGRES_USER");
         String pass = env.get("POSTGRES_PASS");
+
+        // Get the port on which to listen for requests
+        Spark.port(getIntFromEnv("PORT", 4567));
 
         // Get a fully-configured connection to the database, or exit 
         // immediately
