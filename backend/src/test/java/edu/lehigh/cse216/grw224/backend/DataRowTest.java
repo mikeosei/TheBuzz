@@ -25,10 +25,10 @@ public class DataRowTest extends TestCase {
     }
 
     /**
-     * Ensure that the constructor populates every field of the object it
+     * Ensure that the first constructor populates every field of the object it
      * creates
      */
-    public void testConstructor() {
+    public void testConstructor1() {
         String content = "Test Content";
         int id = 17;
         DataRow d = new DataRow(id, content);
@@ -37,6 +37,22 @@ public class DataRowTest extends TestCase {
         assertTrue(d.mId == id);
         assertTrue(d.mLikes == 0);
         assertTrue(d.mDislikes == 0);
+        assertFalse(d.mCreated == null);
+    }
+
+    /**
+     * Ensure that the second constructor populates every field of the object it
+     * creates
+     */
+    public void testConstructor2() {
+        String content = "Test Content";
+        int id = 17;
+        DataRow d = new DataRow(id, content, 3, 4);
+
+        assertTrue(d.mContent.equals(content));
+        assertTrue(d.mId == id);
+        assertTrue(d.mLikes == 3);
+        assertTrue(d.mDislikes == 4);
         assertFalse(d.mCreated == null);
     }
 
