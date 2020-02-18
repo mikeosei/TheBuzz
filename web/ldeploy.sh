@@ -34,3 +34,5 @@ cp node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js $TARGETFOLDER
 # step 6: launch the server.  Be sure to disable caching
 # (Note: we don't currently use -s for silent operation)
 node_modules/.bin/http-server $TARGETFOLDER -c-1
+
+# TODO: unsure of how to update this file from tutorial 10

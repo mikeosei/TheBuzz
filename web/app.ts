@@ -6,6 +6,7 @@
 // Prevent compiler errors when using jQuery.  "$" will be given a type of 
 // "any", so that we can use it anywhere, and assume it has any fields or
 // methods, without the compiler producing an error.
+// TODO: figure out why this is giving an error
 let $: any;
 
 // Prevent compiler errors when using Handlebars

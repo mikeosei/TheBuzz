@@ -12,7 +12,8 @@ class ElementList {
      */
     private static readonly NAME = "ElementList";
 
-    /**has been initialized
+    /**
+     * Track if the Singleton has been initialized
      */
     private static isInit = false;
 
@@ -55,17 +56,6 @@ class ElementList {
         $("." + ElementList.NAME + "-delbtn").click(ElementList.clickDelete);
         // Find all of the Edit buttons, and set their behavior
         $("." + ElementList.NAME + "-editbtn").click(ElementList.clickEdit);
-    }
-
-    /**
-    * buttons() creates 'edit' and 'delete' buttons for an id, and puts them in
-    * a TD
-    */
-    private static buttons(id: string): string {
-        return "<td><button class='" + ElementList.NAME +
-            "-editbtn' data-value='" + id + "'>Edit</button></td>" +
-            "<td><button class='" + ElementList.NAME +
-            "-delbtn' data-value='" + id + "'>Delete</button></td>";
     }
 
     /**

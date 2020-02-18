@@ -33,12 +33,13 @@ cp -R node_modules/bootstrap/dist/fonts $TARGETFOLDER/$WEBFOLDERNAME
 node_modules/typescript/bin/tsc app.ts --strict --outFile $TARGETFOLDER/$WEBFOLDERNAME/app.js
 
 # step 5: copy css files
-cat app.css css/ElementList.css css/EditEntryForm.css css/NewEntryForm.css > $TARGETFOLDER/$WEBFOLDERNAME/app.css
+cat app.css css/ElementList.css css/EditEntryForm.css css/NewEntryForm.css css/Navbar.css > $TARGETFOLDER/$WEBFOLDERNAME/app.css
 
 # step 6: compile handlebars templates to the deploy folder
 node_modules/handlebars/bin/handlebars hb/ElementList.hb >> $TARGETFOLDER/$WEBFOLDERNAME/templates.js
 node_modules/handlebars/bin/handlebars hb/EditEntryForm.hb >> $TARGETFOLDER/$WEBFOLDERNAME/templates.js
 node_modules/handlebars/bin/handlebars hb/NewEntryForm.hb >> $TARGETFOLDER/$WEBFOLDERNAME/templates.js
+node_modules/handlebars/bin/handlebars hb/Navbar.hb >> $TARGETFOLDER/$WEBFOLDERNAME/templates.js
 
 # set up Jasmine
 node_modules/typescript/bin/tsc apptest.ts --strict --outFile $TARGETFOLDER/$WEBFOLDERNAME/apptest.js

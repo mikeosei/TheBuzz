@@ -1,4 +1,5 @@
 /// This constant indicates the path to our backend server
+// TODO: update with our new heroku url
 const backendUrl = "https://still-earth-81666.herokuapp.com";
 
 /**
@@ -69,7 +70,7 @@ class EditEntryForm {
         // onSubmitResponse
         $.ajax({
             type: "PUT",
-            url: "/messages/" + id,
+            url: backendUrl + "/messages/" + id,
             dataType: "json",
             data: JSON.stringify({ mTitle: title, mMessage: msg }),
             success: editEntryForm.onSubmitResponse
@@ -87,7 +88,7 @@ class EditEntryForm {
         // listing of messages
         if (data.mStatus === "ok") {
             editEntryForm.clearForm();
-            mainList.refresh();
+            ElementList.refresh();
         }
         // Handle explicit errors with a detailed popup message
         else if (data.mStatus === "error") {
