@@ -159,11 +159,10 @@ public class Database {
      * 
      * @return The number of rows that were inserted
      */
-    int createEntry(String subject, String message) {
+    int createEntry(String message) {
         int count = 0;
         try {
-            mInsertOne.setString(1, subject);
-            mInsertOne.setString(2, message);
+            mInsertOne.setString(1, message);
             count += mInsertOne.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -181,7 +180,7 @@ public class Database {
         try {
             ResultSet rs = mSelectAll.executeQuery();
             while (rs.next()) {
-                res.add(new DataRow(rs.getInt("id"), rs.getString("subject"), null));
+                res.add(new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
             }
             rs.close();
             return res;
@@ -204,7 +203,7 @@ public class Database {
             mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
-                res = new DataRow(rs.getInt("id"), rs.getString("subject"), rs.getString("message"));
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -249,7 +248,52 @@ public class Database {
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
-                res = new DataRow(rs.getInt("id"), rs.getString("subject"), rs.getString("message"));
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+    
+
+    /**
+     * Increase the likes for a row in the database
+     * @param id The id of the row to update
+     * @return The row that has been updated
+     */
+    DataRow incLikes(int id)
+    {
+        DataRow res = null;
+        try {
+            //mUpdateOne.setString(1, message);
+            mUpdateOne.setInt(2, id);
+             mSelectOne.setInt(1, id);
+            ResultSet rs = mSelectOne.executeQuery();
+            if (rs.next()) {
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes") + 1, rs.getInt("dislikes"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    /**
+     * Increase the dislikes for a row in the database
+     * @param id The id of the row to update
+     * @return The row that has been updated
+     */
+    DataRow incDislikes(int id)
+    {
+        DataRow res = null;
+        try {
+            //mUpdateOne.setString(1, message);
+            mUpdateOne.setInt(2, id);
+             mSelectOne.setInt(1, id);
+            ResultSet rs = mSelectOne.executeQuery();
+            if (rs.next()) {
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes") + 1);
             }
         } catch (SQLException e) {
             e.printStackTrace();

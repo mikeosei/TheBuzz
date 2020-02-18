@@ -8,10 +8,6 @@ package edu.lehigh.cse216.grw224.backend;
  *     do not need a constructor.
  */
 public class SimpleRequest {
-    /**
-     * The title being provided by the client.
-     */
-    public String mTitle;
 
     /**
      * The message being provided by the client.
