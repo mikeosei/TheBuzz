@@ -1,6 +1,6 @@
 /// This constant indicates the path to our backend server
 // TODO: update with our new heroku url
-const backendUrl = "https://still-earth-81666.herokuapp.com";
+const backendUrl = "https://lilchengs.herokuapp.com/";
 
 /**
  * EditEntryForm encapsulates all of the code for the form for editing an entry
