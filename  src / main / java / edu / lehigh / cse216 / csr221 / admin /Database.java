@@ -67,36 +67,26 @@ public class Database {
 		 */
 		int id;
 		/**
-		 * The subject stored in this row
-		 */
-		String title;
-		/**
 		 * The message stored in this row
 		 */
 		String message;
 		/**
-		 * The number of upvotes stored in this row
+		 * The number of likes stored in this row
 		 */
-		int upvotes;
+		int likes;
 		/**
-		 * The number of downvotes stored in this row
+		 * The number of dislikes stored in this row
 		 */
-		int downvotes;
-		/**
-		 * The timestamp of this row's creation
-		 */
-		String timestamp;
+		int dislikes;
 
 		/**
 		 * Construct a RowData object by providing values for its fields
 		 */
-		public RowData(int id, String title, String message, int upvotes, int downvotes, String timestamp) {
+		public RowData(int id, String message, int likes, int dislikes) {
 			this.id = id;
-			this.title = title;
 			this.message = message;
-			this.upvotes = upvotes;
-			this.downvotes = downvotes;
-			this.timestamp = timestamp;
+			this.likes = likes;
+			this.dislikes = dislikes;
 		}
 	}
 
@@ -174,17 +164,17 @@ public class Database {
 			// Note: no "IF NOT EXISTS" or "IF EXISTS" checks on table 
 			// creation/deletion, so multiple executions will cause an exception
 			db.mCreateTable = db.mConnection.prepareStatement(
-					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, title VARCHAR(50) "
-					+ "NOT NULL, message VARCHAR(500) NOT NULL, upvotes INTEGER NOT NULL, "
-					+ "downvotes INTEGER NOT NULL, timestamp TIMESTAMP)");
+					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, "
+					+ " message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL, "
+					+ "dislikes INTEGER NOT NULL");
 			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE tblData");
 
 			// Standard CRUD operations
 			db.mDeleteOne = db.mConnection.prepareStatement("DELETE FROM tblData WHERE id = ?");
-			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, ?, 0, 0, NOW())");
+			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, ?, 0, 0)");
 			db.mSelectAll = db.mConnection.prepareStatement("SELECT * FROM tblData");
 			db.mSelectOne = db.mConnection.prepareStatement("SELECT * from tblData WHERE id=?");
-			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ?, upvotes = upvotes + ?, downvotes = downvotes + ? WHERE id = ?");
+			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ?, likes = likes + ?, dislikes = dislikes + ? WHERE id = ?");
 		} catch (SQLException e) {
 			System.err.println("Error creating prepared statement");
 			e.printStackTrace();
@@ -249,7 +239,7 @@ public class Database {
 		try {
 			ResultSet rs = mSelectAll.executeQuery();
 			while (rs.next()) {
-				res.add(new RowData(rs.getInt("id"), rs.getString("title"), null, rs.getInt("upvotes"), rs.getInt("downvotes"), rs.getString("timestamp")));
+				res.add(new RowData(rs.getInt("id"), rs.getString("message"), null, rs.getInt("likes"), rs.getInt("dislikes")));
 			}
 			rs.close();
 			return res;
@@ -272,7 +262,7 @@ public class Database {
 			mSelectOne.setInt(1, id);
 			ResultSet rs = mSelectOne.executeQuery();
 			if (rs.next()) {
-				res = new RowData(rs.getInt("id"), rs.getString("title"), rs.getString("message"), rs.getInt("upvotes"), rs.getInt("downvotes"), rs.getString("timestamp"));
+				res = new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
