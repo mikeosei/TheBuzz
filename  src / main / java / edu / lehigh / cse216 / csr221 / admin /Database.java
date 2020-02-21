@@ -144,7 +144,7 @@ public class Database {
 		URI dbUri = new URI(db_url);
 		String username = dbUri.getUserInfo().split(":")[0];
 		String password = dbUri.getUserInfo().split(":")[1];
-		String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+		String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()+"?sslmode=require";
 		Connection conn = DriverManager.getConnection(dbUrl, username, password);
 		if (conn == null) {
 			System.err.println("Error: DriverManager.getConnection() returned a null object");
@@ -311,11 +311,11 @@ public class Database {
 		int res = -1;
 		int[] votes={0,0};//up,down
 		int intSize=32;
-		votes[((dVotes&(1<<(intSize-1)))>>intSize-1)+1]=Math.abs(dVotes);
+		votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
 		try {
 			mUpdateOne.setString(1, message);
-			mUpdateOne.setInt(2, votes[1]);//# of upvotes
-			mUpdateOne.setInt(3, votes[0]);//# of downvotes
+			mUpdateOne.setInt(2, votes[0]);//# of upvotes to add
+			mUpdateOne.setInt(3, votes[1]);//# of downvotes to add
 			mUpdateOne.setInt(4, id);
 
 			res = mUpdateOne.executeUpdate();
