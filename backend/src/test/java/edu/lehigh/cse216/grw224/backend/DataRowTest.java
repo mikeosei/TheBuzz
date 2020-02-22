@@ -37,7 +37,6 @@ public class DataRowTest extends TestCase {
         assertTrue(d.mId == id);
         assertTrue(d.mLikes == 0);
         assertTrue(d.mDislikes == 0);
-        assertFalse(d.mCreated == null);
     }
 
     /**
@@ -53,7 +52,6 @@ public class DataRowTest extends TestCase {
         assertTrue(d.mId == id);
         assertTrue(d.mLikes == 3);
         assertTrue(d.mDislikes == 4);
-        assertFalse(d.mCreated == null);
     }
 
     /**
@@ -70,6 +68,5 @@ public class DataRowTest extends TestCase {
         assertTrue(d2.mId == d.mId);
         assertTrue(d2.mLikes == d.mLikes);
         assertTrue(d2.mDislikes == d.mDislikes);
-        assertTrue(d2.mCreated.equals(d.mCreated));
     }
 }
