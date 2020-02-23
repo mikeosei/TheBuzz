@@ -51,6 +51,16 @@ public class Database {
      * A prepared statement for dropping the table in our database
      */
     private PreparedStatement mDropTable;
+
+    /**
+     * A prepared statement for liking a message
+     */
+    private PreparedStatement mLikeMsg;
+
+    /**
+     * A prepared statement for disliking a message
+     */
+    private PreparedStatement mDislikeMsg;
     
 
     /**
@@ -113,10 +123,12 @@ public class Database {
 
             // Standard CRUD operations
             db.mDeleteOne = db.mConnection.prepareStatement("DELETE FROM tblData WHERE id = ?");
-            db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, ?)");
+            db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, 0, 0)");
             db.mSelectAll = db.mConnection.prepareStatement("SELECT id, message, likes, dislikes FROM tblData");
             db.mSelectOne = db.mConnection.prepareStatement("SELECT * from tblData WHERE id=?");
             db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ? WHERE id = ?");
+            db.mLikeMsg = db.mConnection.prepareStatement("UPDATE tblData SET likes = likes + 1 WHERE id = ?");
+            db.mDislikeMsg = db.mConnection.prepareStatement("UPDATE tblData SET dislikes = dislikes + 1 WHERE id = ?");
         } catch (SQLException e) {
             System.err.println("Error creating prepared statement");
             e.printStackTrace();
@@ -266,12 +278,12 @@ public class Database {
     {
         DataRow res = null;
         try {
-            //mUpdateOne.setString(1, message);
-            mUpdateOne.setInt(2, id);
+            //mLikeMsg.setInt(1, message);
+            mLikeMsg.setInt(1, id);
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
-                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes") + 1, rs.getInt("dislikes"));
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -289,11 +301,11 @@ public class Database {
         DataRow res = null;
         try {
             //mUpdateOne.setString(1, message);
-            mUpdateOne.setInt(2, id);
+            mDislikeMsg.setInt(1, id);
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
-                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes") + 1);
+                res = new DataRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
