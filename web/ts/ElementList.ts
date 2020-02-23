@@ -1,7 +1,3 @@
-// a global for the main ElementList of the program.  See newEntryForm for 
-// explanation
-var mainList: ElementList;
-
 /**
  * The ElementList Singleton provides a way of displaying all of the data 
  * stored on the server as an HTML table.
@@ -54,8 +50,12 @@ class ElementList {
         $("body").append(Handlebars.templates[ElementList.NAME + ".hb"](data));
         // Find all of the delete buttons, and set their behavior
         $("." + ElementList.NAME + "-delbtn").click(ElementList.clickDelete);
-        // Find all of the Edit buttons, and set their behavior
-        $("." + ElementList.NAME + "-editbtn").click(ElementList.clickEdit);
+        // Find all of the edit buttons, and set their behavior
+        $("." + ElementList.NAME + "-editbtn").click(EditEntryForm.show);
+        // Find all of the like buttons, and set their behavior
+        $("." + ElementList.NAME + "-likebtn").click(ElementList.clickLike);
+        // Find all of the dislike buttons, and set their behavior
+        $("." + ElementList.NAME + "-dislbtn").click(ElementList.clickDislike);
     }
 
     /**
@@ -67,25 +67,38 @@ class ElementList {
         let id = $(this).data("value");
         $.ajax({
             type: "DELETE",
-            url: backendUrl + "/messages",
+            url: backendUrl + "/messages/" + id,
             dataType: "json",
-            // TODO: we should really have a function that looks at the return
-            //       value and possibly prints an error message.
             success: ElementList.refresh
         });
     }
 
     /**
-    * clickEdit is the code we run in response to a click of a delete button
-    */
-    private static clickEdit() {
+     * clickLike is the code we run in response to a click of a like button
+     */
+    private static clickLike() {
         // as in clickDelete, we need the ID of the row
         let id = $(this).data("value");
         $.ajax({
-            type: "GET",
-            url: backendUrl + "/messages",
+            type: "PUT",
+            url: backendUrl + "/messages/" + id + "/like",
             dataType: "json",
-            success: editEntryForm.init
-        });
+            success: ElementList.refresh
+        })
     }
+
+    /**
+     * clickDislike is the code we run in response to a click of a dislike button
+     */
+    private static clickDislike() {
+        // as in clickDelete, we need the ID of the row
+        let id = $(this).data("value");
+        $.ajax({
+            type: "PUT",
+            url: backendUrl + "/messages/" + id + "/dislike",
+            dataType: "json",
+            success: ElementList.refresh
+        })
+    }
+
 }

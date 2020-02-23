@@ -10,7 +10,7 @@
               <span class="icon-bar"></span>
             </button>
             <!-- Clicking the brand refreshes the page -->
-            <a class="navbar-brand" href="/">My Web Frontend</a>
+            <a class="navbar-brand" href="/">Lil Chengs</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -18,7 +18,7 @@
             <ul class="nav navbar-nav">
                 <li>
                     <a class="btn btn-link" id="Navbar-add">
-                        Add Entry
+                        Add Message
                         <span class="glyphicon glyphicon-plus"></span><span class="sr-only">Show Trending Posts</span>
                     </a>
                 </li>

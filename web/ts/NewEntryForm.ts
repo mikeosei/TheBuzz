@@ -28,7 +28,7 @@ class NewEntryForm {
     }
 
     /**
-     * Refresh() doesn't really have much meaning, but just like in sNavbar, we
+     * Refresh() doesn't really have much meaning, but just like in Navbar, we
      * have a refresh() method so that we don't have front-end code calling
      * init().
      */
@@ -40,7 +40,6 @@ class NewEntryForm {
      * Hide the NewEntryForm.  Be sure to clear its fields first
      */
     private static hide() {
-        $("#" + NewEntryForm.NAME + "-title").val("");
         $("#" + NewEntryForm.NAME + "-message").val("");
         $("#" + NewEntryForm.NAME).modal("hide");
     }
@@ -52,24 +51,22 @@ class NewEntryForm {
      * with those ways of making the modal disappear.
      */
     public static show() {
-        $("#" + NewEntryForm.NAME + "-title").val("");
         $("#" + NewEntryForm.NAME + "-message").val("");
         $("#" + NewEntryForm.NAME).modal("show");
     }
 
 
     /**
-     * Send data to submit the form only if the fields are both valid.  
+     * Send data to submit the form only if the field is valid.  
      * Immediately hide the form when we send data, so that the user knows that 
      * their click was received.
      */
     private static submitForm() {
-        // get the values of the two fields, force them to be strings, and check 
-        // that neither is empty
-        let title = "" + $("#" + NewEntryForm.NAME + "-title").val();
+        // get the values of message field, force it to be a string, and check 
+        // that it is not empty
         let msg = "" + $("#" + NewEntryForm.NAME + "-message").val();
-        if (title === "" || msg === "") {
-            window.alert("Error: title or message is not valid");
+        if (msg === "") {
+            window.alert("Please enter message");
             return;
         }
         NewEntryForm.hide();
@@ -79,7 +76,7 @@ class NewEntryForm {
             type: "POST",
             url: backendUrl + "/messages",
             dataType: "json",
-            data: JSON.stringify({ mTitle: title, mMessage: msg }),
+            data: JSON.stringify({mMessage: msg}),
             success: NewEntryForm.onSubmitResponse
         });
     }
