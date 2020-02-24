@@ -51,7 +51,7 @@ class ElementList {
         // Find all of the delete buttons, and set their behavior
         $("." + ElementList.NAME + "-delbtn").click(ElementList.clickDelete);
         // Find all of the edit buttons, and set their behavior
-        $("." + ElementList.NAME + "-editbtn").click(EditEntryForm.show);
+        $("." + ElementList.NAME + "-editbtn").click(ElementList.clickEdit);
         // Find all of the like buttons, and set their behavior
         $("." + ElementList.NAME + "-likebtn").click(ElementList.clickLike);
         // Find all of the dislike buttons, and set their behavior
@@ -99,6 +99,15 @@ class ElementList {
             dataType: "json",
             success: ElementList.refresh
         })
+    }
+
+    /**
+     * clickEdit is the code we run in response to a click of an edit message button
+     */
+    private static clickEdit() {
+        // as in clickDelete, we need the ID of the row
+        let id = $(this).data("value");
+        EditEntryForm.show(id);
     }
 
 }

@@ -14,6 +14,11 @@ class EditEntryForm {
     private static isInit = false;
 
     /**
+     * Track ID of message that gets passed in from click of Edit Message button on ElementList
+     */
+    private static messageID: any;
+
+    /**
      * Initialize the EditEntryForm by creating its element in the DOM and 
      * configuring its buttons.  This needs to be called from any public static 
      * method, to ensure that the Singleton is initialized before use
@@ -48,9 +53,13 @@ class EditEntryForm {
      * Show the EditEntryForm.  Be sure to clear its fields, because there are
      * ways of making a Bootstrap modal disapper without clicking Close, and
      * we haven't set up the hooks to clear the fields on the events associated
-     * with those ways of making the modal disappear.
+     * with those ways of making the modal disappear. Also set the
+     * static id variable to what was passed in from the Edit Message button click
+     * 
+     * @param ID The id of the message
      */
-    public static show() {
+    public static show(ID: any) {
+        EditEntryForm.messageID = ID;
         $("#" + EditEntryForm.NAME + "-message").val("");
         $("#" + EditEntryForm.NAME).modal("show");
     }
@@ -63,7 +72,6 @@ class EditEntryForm {
     private static submitForm() {
         // get the value of message field, force it to be a string, and check 
         // that it is not empty
-        let id = $(this).data("value");
         let msg = "" + $("#" + EditEntryForm.NAME + "-message").val();
         if (msg === "") {
             window.alert("Please enter message");
@@ -74,7 +82,7 @@ class EditEntryForm {
         // onSubmitResponse
         $.ajax({
             type: "PUT",
-            url: backendUrl + "/messages/" + id,
+            url: backendUrl + "/messages/" + EditEntryForm.messageID,
             dataType: "json",
             data: JSON.stringify({mMessage: msg}),
             success: EditEntryForm.onSubmitResponse
