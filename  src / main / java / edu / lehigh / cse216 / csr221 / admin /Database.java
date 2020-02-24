@@ -164,14 +164,12 @@ public class Database {
 			// Note: no "IF NOT EXISTS" or "IF EXISTS" checks on table 
 			// creation/deletion, so multiple executions will cause an exception
 			db.mCreateTable = db.mConnection.prepareStatement(
-					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, "
-					+ " message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL, "
-					+ "dislikes INTEGER NOT NULL");
+					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL)"); 
 			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE tblData");
 
 			// Standard CRUD operations
 			db.mDeleteOne = db.mConnection.prepareStatement("DELETE FROM tblData WHERE id = ?");
-			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, ?, 0, 0)");
+			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, 0, 0)");
 			db.mSelectAll = db.mConnection.prepareStatement("SELECT * FROM tblData");
 			db.mSelectOne = db.mConnection.prepareStatement("SELECT * from tblData WHERE id=?");
 			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ?, likes = likes + ?, dislikes = dislikes + ? WHERE id = ?");
@@ -217,11 +215,10 @@ public class Database {
 	 * 
 	 * @return The number of rows that were inserted
 	 */
-	int insertRow(String title, String message) {
+	int insertRow(String message) {
 		int count = 0;
 		try {
-			mInsertOne.setString(1, title);
-			mInsertOne.setString(2, message);
+			mInsertOne.setString(1, message);
 			count += mInsertOne.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -239,7 +236,7 @@ public class Database {
 		try {
 			ResultSet rs = mSelectAll.executeQuery();
 			while (rs.next()) {
-				res.add(new RowData(rs.getInt("id"), rs.getString("message"), null, rs.getInt("likes"), rs.getInt("dislikes")));
+				res.add(new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
 			}
 			rs.close();
 			return res;
@@ -262,7 +259,7 @@ public class Database {
 			mSelectOne.setInt(1, id);
 			ResultSet rs = mSelectOne.executeQuery();
 			if (rs.next()) {
-				res = new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
+				res = new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -297,11 +294,10 @@ public class Database {
 	 * 
 	 * @return The number of rows that were updated.  -1 indicates an error.
 	 */
-	int updateOne(int id, String message, int dVotes) {
+	int updateOne(int id, String message) {
 		int res = -1;
 		int[] votes={0,0};//up,down
-		int intSize=32;
-		votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
+		// votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
 		try {
 			mUpdateOne.setString(1, message);
 			mUpdateOne.setInt(2, votes[0]);//# of upvotes to add
