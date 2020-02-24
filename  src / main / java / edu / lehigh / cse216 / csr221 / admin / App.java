@@ -108,12 +108,12 @@ public class App {
     public static void main(String[] argv) {
         // get the Postgres configuration from the environment
         Map<String, String> env = System.getenv();
-        String ip = env.get("POSTGRES_IP");
-        String port = env.get("POSTGRES_PORT");
-        String user = env.get("POSTGRES_USER");
-        String pass = env.get("POSTGRES_PASS");
-        String database = env.get("POSTGRES_DATABASE");
-        String db_url = env.get("DATABASE_URL");
+        // String ip = env.get("POSTGRES_IP");
+        // String port = env.get("POSTGRES_PORT");
+        // String user = env.get("POSTGRES_USER");
+        // String pass = env.get("POSTGRES_PASS");
+        // String database = env.get("POSTGRES_DATABASE");
+        String db_url = "postgres://ecxfhpxnovpejh:0a0657538f39c41357b1de598e83f75940333ef42441c9eb41268f0a5d08dc2a@ec2-34-235-108-68.compute-1.amazonaws.com:5432/d70uqvt93jbpoq";
 
         // Get a fully-configured connection to the database, or exit 
         // immediately
@@ -144,8 +144,8 @@ public class App {
                     continue;
                 Database.RowData res = db.selectOne(id);
                 if (res != null) {
-                    System.out.println("  [" + res.mId + "] " + res.mSubject);
-                    System.out.println("  --> " + res.mMessage);
+                    System.out.println("  [" + res.id + "] ");
+                    System.out.println("  --> " + res.message);
                 }
             } else if (action == '*') {
                 ArrayList<Database.RowData> res = db.selectAll();
@@ -154,7 +154,7 @@ public class App {
                 System.out.println("  Current Database Contents");
                 System.out.println("  -------------------------");
                 for (Database.RowData rd : res) {
-                    System.out.println("  [" + rd.mId + "] " + rd.mSubject);
+                   System.out.println("  [ID # " + rd.id + "]" + "  Message: " + rd.message);
                 }
             } else if (action == '-') {
                 int id = getInt(in, "Enter the row ID");
@@ -165,11 +165,10 @@ public class App {
                     continue;
                 System.out.println("  " + res + " rows deleted");
             } else if (action == '+') {
-                String subject = getString(in, "Enter the subject");
                 String message = getString(in, "Enter the message");
-                if (subject.equals("") || message.equals(""))
+                if (message.equals(""))
                     continue;
-                int res = db.insertRow(subject, message);
+                int res = db.insertRow(message);
                 System.out.println(res + " rows added");
             } else if (action == '~') {
                 int id = getInt(in, "Enter the row ID :> ");
