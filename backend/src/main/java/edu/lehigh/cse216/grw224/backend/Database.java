@@ -257,6 +257,7 @@ public class Database {
         try {
             mUpdateOne.setString(1, message);
             mUpdateOne.setInt(2, id);
+            mUpdateOne.executeUpdate();
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
@@ -280,6 +281,7 @@ public class Database {
         try {
             //mLikeMsg.setInt(1, message);
             mLikeMsg.setInt(1, id);
+            mLikeMsg.executeUpdate();
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
@@ -302,6 +304,7 @@ public class Database {
         try {
             //mUpdateOne.setString(1, message);
             mDislikeMsg.setInt(1, id);
+            mDislikeMsg.executeUpdate();
              mSelectOne.setInt(1, id);
             ResultSet rs = mSelectOne.executeQuery();
             if (rs.next()) {
