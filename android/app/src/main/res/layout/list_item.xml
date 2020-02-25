@@ -3,14 +3,34 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextView
-        android:id="@+id/listItemIndex"
+        android:id="@+id/listItemId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="" />
 
     <TextView
-        android:id="@+id/listItemText"
+        android:id="@+id/listItemContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="" />
+        android:text=""
+        android:clickable="true"
+        />
+
+    <TextView
+        android:id="@+id/listNumberOfLikes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/buttonLikes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@LIKE" />
+
+    <Button
+        android:id="@+id/buttonDislikes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@DISLIKE" />
+
 </LinearLayout>
