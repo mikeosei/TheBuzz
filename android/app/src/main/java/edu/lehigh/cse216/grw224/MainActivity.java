@@ -39,13 +39,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-
     /**
      * mData holds the data we get from Volley
      */
     ArrayList<Datum> mData = new ArrayList<>();
-
-
+    int likeCounter = 0;
+    int dislikeCounter = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,11 +62,10 @@ public class MainActivity extends AppCompatActivity {
         });
         // Instantiate the RequestQueue.
 
-
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
         String url = "https://lilchengs.herokuapp.com/messages";
         Log.d("mfs409", "testung bbbbbbbbbb ");
-// Request a string response from the provided URL.
+        // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -82,12 +80,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-// Add the request to the RequestQueue.
+        // Add the request to the RequestQueue.
         queue.add(stringRequest);
 
 
     }
-
 
     public void refresh(){
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
@@ -112,21 +109,17 @@ public class MainActivity extends AppCompatActivity {
 // Add the request to the RequestQueue.
         queue.add(stringRequest);
 
-
     }
 
-
-
-
     private void populateListFromVolley(String response){
-        RequestQueue queue = VolleySingleton.getRequestQueue(this);
+        final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         try {
             Log.d("mbo", "RESPONSE " + response);
             JSONObject ob = new JSONObject(response);
             Log.d("mbo", ob.toString());
             JSONArray json=  ob.getJSONArray("mData");
 
-
+            mData.clear();
             for (int i = 0; i < json.length(); ++i) {
                 int id = json.getJSONObject(i).getInt("mId");
                 String content = json.getJSONObject(i).getString("mContent");
@@ -146,20 +139,61 @@ public class MainActivity extends AppCompatActivity {
         rv.setAdapter(adapter);
 
 
-
+/*
+creates new click listener wit
+setClickListener() is a method of ItemListAdapter that specifically connects the following request to the button in Itemlistadapter
+ */
         adapter.setClickListener(new ItemListAdapter.ClickListener() {
             @Override
             public void onClick(Datum d) {
-                /*Toast.makeText(MainActivity.this, d.mIndex + " --> " + d.mText, Toast.LENGTH_LONG).show();
+                    String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/dislike";
+                    // Request a string response from the provided URL.
+                    StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    Log.d("mbo221disLikeCounterPUT",response);
+                                    dislikeCounter++;
+                                    refresh();
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("grw224", "That didn't work!");
+                        }
+                    });
+                    // Add the request to the RequestQueue.
+                    queue.add(stringRequest);
+                }
 
-D/mfs409: Error parsing JSON file: Value {"mStatus":"ok","mData":[{"mId":15,"mContent":"Message","mLikes":0,"mDislikes":0},{"mId":18,"mContent":"mess","mLikes":0,"mDislikes":0},{"mId":20,"mContent":"kjg","mLikes":0,"mDislikes":0}]} of type org.json.JSONObject cannot be converted to JSONArray
-
-                 */
-
-
-            }
         });
 
+
+
+        adapter.setLikeClickListener(new ItemListAdapter.ClickListener() {
+            @Override
+            public void onClick(Datum d) {
+                String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/like";
+                // Request a string response from the provided URL.
+                StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                Log.d("mbo221disLikeCounterPUT",response);
+                                likeCounter++;
+                                refresh();
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("grw224", "That didn't work!");
+                    }
+                });
+                // Add the request to the RequestQueue.
+                queue.add(stringRequest);
+            }
+
+        });
 
 
     }
@@ -186,44 +220,6 @@ D/mfs409: Error parsing JSON file: Value {"mStatus":"ok","mData":[{"mId":15,"mCo
             String newMessage;
             JSONObject ob= new JSONObject();
             Intent i = new Intent(getApplicationContext(), SecondActivity.class);
-            //i.putExtra("label_contents", "New Message");
-/*
-            newId= extras.getString("result1");
-            newMessage= extras.getString("result2");
-        try{
-            ob.accumulate("mData",newId);
-            ob.accumulate("mContent",newMessage);
-
-            ob.accumulate("mLikes",0);
-            ob.accumulate("mDislikes",0);
-
-            RequestQueue queue = VolleySingleton.getRequestQueue(this);
-            String url = "https://lilchengs.herokuapp.com/messages";
-            Log.d("mfs409", "testung bbbbbbbbbb ");
-// Request a string response from the provided URL.
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                        refresh();
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e("grw224", "That didn't work!");
-                }
-            });
-
-// Add the request to the RequestQueue.
-            queue.add(stringRequest);
-
-
-        } catch (final JSONException e) {
-            Log.d("mfs409", "Error parsing JSON file: " + e.getMessage());
-            return false;
-        }
-
-        */
 
 
             startActivityForResult(i, 789); // 789 is the number that will come back to us
@@ -241,8 +237,14 @@ D/mfs409: Error parsing JSON file: Value {"mStatus":"ok","mData":[{"mId":15,"mCo
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 // Get the "extra" string of data
-                Toast.makeText(MainActivity.this, data.getStringExtra("result"), Toast.LENGTH_LONG).show();
+                //Toast.makeText(MainActivity.this, data.getStringExtra("result"), Toast.LENGTH_LONG).show();
+                refresh();
             }
         }
     }
+
+
+
+
+
 }

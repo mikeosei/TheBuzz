@@ -24,4 +24,13 @@ public class ExampleInstrumentedTest {
 
         assertEquals("edu.lehigh.cse216.grw224", appContext.getPackageName());
     }
+
+    public void Datum_constructor_sets_fields() throws Exception {
+        Datum d = new Datum(7, "hello world", 0,0);
+        assertEquals(d.mId, 7);
+        assertEquals(d.mContent, "hello world");
+        assertEquals(d.mLikes, 0);
+        assertEquals(d.mDislikes, 0);
+
+    }
 }
