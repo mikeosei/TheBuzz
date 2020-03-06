@@ -45,6 +45,13 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Datum> mData = new ArrayList<>();
     int likeCounter = 0;
     int dislikeCounter = 0;
+    /*
+    onCreate is where you initialize your activity
+
+    @param savedInstanceState  if the activity is being re-initialized after previously
+    being shut down then this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+    Note: Otherwise it is null. This value may be null
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    /*
+    refresh recyclerview
+     */
     public void refresh(){
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
 

@@ -84,10 +84,10 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
 
             }
         };
-        holder.mLikes.setOnClickListener(likeListener);
-        //holder.mId.setOnClickListener(listener);
+        //binds button to like listener previously created
 
-        //////////////////////
+        holder.mLikes.setOnClickListener(likeListener);
+
         /*
         creates new onclicklistener for view (dislikebutton) and when it is clicked the Main activity's  onclicklistener is triggered
          */
@@ -95,11 +95,7 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
 
             @Override
             public void onClick(View view) {
-
-
                         mDislikeListener.onClick(d);
-
-
                 }
                 //holder.mText.setOnClickListener(listener);
 
@@ -108,9 +104,9 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
 
 
         };
+
         //binds button to dislikeLike listener previously created
         holder.mDislikes.setOnClickListener(dislikeListener);
-        //////////////////////
 
 
 
@@ -127,17 +123,24 @@ creation of a clicklistener interface which uses a method called onClick
     interface ClickListener{
         void onClick(Datum d);
     }
-    //private ClickListener is an instance of our
-/*
+
+    /*
+    private ClickListener is an instance of the instance
+
 creation of mDislikeListener, a instance of ClickListener that will be potentially linked to the interfaces onClick method
-SEE View.OnClickListener
- */
+SEE final View.OnClickListener
+     */
     private ClickListener mDislikeListener;
     ClickListener getClickListener() {return mDislikeListener;}
     void setClickListener(ClickListener c) { mDislikeListener = c;}
 
 
+    /*
+    private ClickListener is an instance of the instance
 
+creation of mLikeListener, a instance of ClickListener that will be potentially linked to the interfaces onClick method
+SEE final View.OnClickListener
+     */
     private ClickListener mLikeListener;
     ClickListener getLikeClickListener() {return mLikeListener;}
     void setLikeClickListener(ClickListener c) { mLikeListener = c;}

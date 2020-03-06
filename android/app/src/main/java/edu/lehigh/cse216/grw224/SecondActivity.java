@@ -29,6 +29,13 @@ import org.json.JSONObject;
 
 public class SecondActivity extends AppCompatActivity {
 
+    /*
+onCreate is where you initialize your activity
+
+@param savedInstanceState  if the activity is being re-initialized after previously
+being shut down then this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+Note: Otherwise it is null. This value may be null
+ */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +68,8 @@ public class SecondActivity extends AppCompatActivity {
                     String url = "https://lilchengs.herokuapp.com/messages";
 // Request a string response from the provided URL.
 /*
+POST Request
+
 @param Request.Method.POST type of http request
 @param messageData data that we are sending the backend
  */
