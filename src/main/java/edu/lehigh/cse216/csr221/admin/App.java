@@ -17,13 +17,23 @@ public class App {
      */
     static void menu() {
         System.out.println("Main Menu");
+        // Commands for tblData
         System.out.println("  [T] Create tblData");
         System.out.println("  [D] Drop tblData");
-        System.out.println("  [1] Query for a specific row");
-        System.out.println("  [*] Query for all rows");
-        System.out.println("  [-] Delete a row");
-        System.out.println("  [+] Insert a new row");
-        System.out.println("  [~] Update a row");
+        System.out.println("  [1] Query for a specific row of tblData");
+        System.out.println("  [*] Query for all rows of tblData");
+        System.out.println("  [-] Delete a row of tblData");
+        System.out.println("  [+] Insert a new row of tblData");
+        System.out.println("  [~] Update a row of tblData");
+        // Commands for tblData2
+        System.out.println("  [Y] Create tblData2");
+        System.out.println("  [F] Drop tblData2");
+        System.out.println("  [2] Query for a specific row of tblData2");
+        System.out.println("  [#] Query for all rows of tblData2");
+        System.out.println("  [_] Delete a row of tblData");
+        System.out.println("  [=] Insert a new row of tblData");
+        System.out.println("  [`] Update a row of tblData");
+        // General Commands
         System.out.println("  [q] Quit Program");
         System.out.println("  [?] Help (this message)");
     }
@@ -37,7 +47,7 @@ public class App {
      */
     static char prompt(BufferedReader in) {
         // The valid actions:
-        String actions = "TD1*-+~q?";
+        String actions = "TD1*-+~YF2#_=`q?";
 
         // We repeat until a valid single-character option is selected        
         while (true) {
@@ -134,7 +144,9 @@ public class App {
                 menu();
             } else if (action == 'q') {
                 break;
-            } else if (action == 'T') {
+            } 
+            // Commands for tblData
+            else if (action == 'T') {
                 db.createTable();
             } else if (action == 'D') {
                 db.dropTable();
@@ -176,6 +188,54 @@ public class App {
                     continue;
                 String newMessage = getString(in, "Enter the new message");
                 int res = db.updateOne(id, newMessage);
+                if (res == -1)
+                    continue;
+                System.out.println("  " + res + " rows updated");
+            }
+            // Commands for tblData2
+            else if (action == 'Y') {
+                db.createTable2();
+            } else if (action == 'F') {
+                db.dropTable2();
+            } else if (action == '2') {
+                int id = getInt(in, "Enter the row ID");
+                if (id == -1)
+                    continue;
+                Database.RowData2 res = db.selectOne2(id);
+                if (res != null) {
+                    System.out.println("  [" + res.id + "] ");
+                    System.out.println("  --> " + res.comment);
+                }
+            } else if (action == '#') {
+                ArrayList<Database.RowData2> res = db.selectAll2();
+                if (res == null)
+                    continue;
+                System.out.println("  Current Database Contents");
+                System.out.println("  -------------------------");
+                for (Database.RowData2 rd : res) {
+                   System.out.println("  [ID # " + rd.id + "]" + "  Comment: " + rd.comment + "  MessageId: " + rd.messageId);
+                }
+            } else if (action == '_') {
+                int id = getInt(in, "Enter the row ID");
+                if (id == -1)
+                    continue;
+                int res = db.deleteRow2(id);
+                if (res == -1)
+                    continue;
+                System.out.println("  " + res + " rows deleted");
+            } else if (action == '=') {
+                String message = getString(in, "Enter the Comment");
+                int messageId = getInt(in, "Enter the messageId");
+                if (message.equals(""))
+                    continue;
+                int res = db.insertRow2(message,messageId);
+                System.out.println(res + " rows added");
+            } else if (action == '`') {
+                int id = getInt(in, "Enter the row ID :> ");
+                if (id == -1)
+                    continue;
+                String newMessage = getString(in, "Enter the new comment");
+                int res = db.updateOne2(id, newMessage);
                 if (res == -1)
                     continue;
                 System.out.println("  " + res + " rows updated");

@@ -17,39 +17,75 @@ public class Database {
 	private Connection mConnection;
 
 	/**
-	 * A prepared statement for getting all data in the database
+	 * A prepared statement for getting all data in the message database
 	 */
 	private PreparedStatement mSelectAll;
 
 	/**
-	 * A prepared statement for getting one row from the database
+	 * A prepared statement for getting one row from the message database
 	 */
 	private PreparedStatement mSelectOne;
 
 	/**
-	 * A prepared statement for deleting a row from the database
+	 * A prepared statement for deleting a row from the message database
 	 */
 	private PreparedStatement mDeleteOne;
 
 	/**
-	 * A prepared statement for inserting into the database
+	 * A prepared statement for inserting into the message database
 	 */
 	private PreparedStatement mInsertOne;
 
 	/**
-	 * A prepared statement for updating a single row in the database
+	 * A prepared statement for updating a single row in the message database
 	 */
 	private PreparedStatement mUpdateOne;
 
 	/**
-	 * A prepared statement for creating the table in our database
+	 * A prepared statement for creating the table in our message database
 	 */
 	private PreparedStatement mCreateTable;
 
 	/**
-	 * A prepared statement for dropping the table in our database
+	 * A prepared statement for dropping the table in our message database
 	 */
 	private PreparedStatement mDropTable;
+
+
+	/**
+	 * A prepared statement for getting all data in the comment database
+	 */
+	private PreparedStatement mSelectAll2;
+
+	/**
+	 * A prepared statement for getting one row from the comment database
+	 */
+	private PreparedStatement mSelectOne2;
+
+	/**
+	 * A prepared statement for deleting a row from the comment database
+	 */
+	private PreparedStatement mDeleteOne2;
+
+	/**
+	 * A prepared statement for inserting into the comment database
+	 */
+	private PreparedStatement mInsertOne2;
+
+	/**
+	 * A prepared statement for updating a single row in the comment database
+	 */
+	private PreparedStatement mUpdateOne2;
+
+	/**
+	 * A prepared statement for creating the table in our comment database
+	 */
+	private PreparedStatement mCreateTable2;
+
+	/**
+	 * A prepared statement for dropping the table in our comment database
+	 */
+	private PreparedStatement mDropTable2;
 
 	/**
 	 * RowData is like a struct in C: we use it to hold data, and we allow 
@@ -87,6 +123,32 @@ public class Database {
 			this.message = message;
 			this.likes = likes;
 			this.dislikes = dislikes;
+		}
+	}
+	/**
+	 * RowData2 is the row data for comments
+	 */
+	public static class RowData2 {
+		/**
+		 * The ID of this row of the database
+		 */
+		int id;
+		/**
+		 * The comment stored in this row
+		 */
+		String comment;
+		/**
+		 * The ID of the message the comment is commenting on
+		 */
+		int messageId;
+
+		/**
+		 * Construct a RowData object by providing values for its fields
+		 */
+		public RowData2(int id, String comment, int messageId) {
+			this.id = id;
+			this.comment = comment;
+			this.messageId = messageId;
 		}
 	}
 
@@ -163,6 +225,8 @@ public class Database {
 
 			// Note: no "IF NOT EXISTS" or "IF EXISTS" checks on table 
 			// creation/deletion, so multiple executions will cause an exception
+
+			// Statements for message table (tblData)
 			db.mCreateTable = db.mConnection.prepareStatement(
 					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL)"); 
 			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE tblData");
@@ -173,6 +237,19 @@ public class Database {
 			db.mSelectAll = db.mConnection.prepareStatement("SELECT * FROM tblData");
 			db.mSelectOne = db.mConnection.prepareStatement("SELECT * from tblData WHERE id=?");
 			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ?, likes = likes + ?, dislikes = dislikes + ? WHERE id = ?");
+
+
+			// Statements for comment table (tblData2)
+			db.mCreateTable2 = db.mConnection.prepareStatement(
+					"CREATE TABLE tblData2 (id SERIAL PRIMARY KEY, comment VARCHAR(500) NOT NULL, messageId INTEGER NOT NULL)"); 
+			db.mDropTable2 = db.mConnection.prepareStatement("DROP TABLE tblData2");
+
+			// Standard CRUD operations
+			db.mDeleteOne2 = db.mConnection.prepareStatement("DELETE FROM tblData2 WHERE id = ?");
+			db.mInsertOne2 = db.mConnection.prepareStatement("INSERT INTO tblData2 VALUES (default, ?, ?)");
+			db.mSelectAll2 = db.mConnection.prepareStatement("SELECT * FROM tblData2");
+			db.mSelectOne2 = db.mConnection.prepareStatement("SELECT * from tblData2 WHERE id=?");
+			db.mUpdateOne2 = db.mConnection.prepareStatement("UPDATE tblData2 SET comment = ?, where id=?");
 		} catch (SQLException e) {
 			System.err.println("Error creating prepared statement");
 			e.printStackTrace();
@@ -332,5 +409,131 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	
+	/**
+	 * Create tblData2.	If it already exists, this will print an error
+	 */
+	void createTable2() {
+		try {
+			mCreateTable2.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Remove tblData2 from the database.  If it does not exist, this will print
+	 * an error.
+	 */
+	void dropTable2() {
+		try {
+			mDropTable2.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Insert a row into the database
+	 *
+	 * @param message The message body for this new row
+	 * 
+	 * @return The number of rows that were inserted
+	 */
+	int insertRow2(String message, int messageId) {
+		int count = 0;
+		try {
+			mInsertOne2.setString(1, message);
+			mInsertOne2.setInt(2,messageId);
+			count += mInsertOne2.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return count;
+	}
+
+	/**
+	 * Query the database for a list of all comments and their IDs
+	 * 
+	 * @return All rows, as an ArrayList
+	 */
+	ArrayList<RowData2> selectAll2() {
+		ArrayList<RowData2> res = new ArrayList<RowData2>();
+		try {
+			ResultSet rs = mSelectAll2.executeQuery();
+			while (rs.next()) {
+				res.add(new RowData2(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId")));
+			}
+			rs.close();
+			return res;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Get all data for a specific row, by ID
+	 * 
+	 * @param id The id of the row being requested
+	 * 
+	 * @return The data for the requested row, or null if the ID was invalid
+	 */
+	RowData2 selectOne2(int id) {
+		RowData2 res = null;
+		try {
+			mSelectOne2.setInt(1, id);
+			ResultSet rs = mSelectOne2.executeQuery();
+			if (rs.next()) {
+				res = new RowData2(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	/**
+	 * Delete a row by ID from tblData2
+	 * 
+	 * @param id The id of the row to delete
+	 * 
+	 * @return The number of rows that were deleted.  -1 indicates an error.
+	 */
+	int deleteRow2(int id) {
+		int res = -1;
+		try {
+			mDeleteOne2.setInt(1, id);
+			res = mDeleteOne2.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	/**
+	 * Update the message for a row in tblData2
+	 * 
+	 * @param id The id of the row to update
+	 * @param message The new message contents
+	 * @param dVotes The total change in votes
+	 * 
+	 * @return The number of rows that were updated.  -1 indicates an error.
+	 */
+	int updateOne2(int id, String message) {
+		int res = -1;
+		int[] votes={0,0};//up,down
+		// votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
+		try {
+			mUpdateOne2.setString(1, message);
+			mUpdateOne2.setInt(2, id);
+
+			res = mUpdateOne2.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
 	}
 }
