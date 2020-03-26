@@ -88,16 +88,16 @@ public class Database {
 	private PreparedStatement mDropTable2;
 
 	/**
-	 * RowData is like a struct in C: we use it to hold data, and we allow 
-	 * direct access to its fields.  In the context of this Database, RowData 
+	 * MessageRow is like a struct in C: we use it to hold data, and we allow 
+	 * direct access to its fields.  In the context of this Database, MessageRow 
 	 * represents the data we'd see in a row.
 	 * 
-	 * We make RowData a static class of Database because we don't really want
-	 * to encourage users to think of RowData as being anything other than an
-	 * abstract representation of a row of the database.  RowData and the 
+	 * We make MessageRow a static class of Database because we don't really want
+	 * to encourage users to think of MessageRow as being anything other than an
+	 * abstract representation of a row of the database.  MessageRow and the 
 	 * Database are tightly coupled: if one changes, the other should too.
 	 */
-	public static class RowData {
+	public static class MessageRow {
 		/**
 		 * The ID of this row of the database
 		 */
@@ -116,9 +116,9 @@ public class Database {
 		int dislikes;
 
 		/**
-		 * Construct a RowData object by providing values for its fields
+		 * Construct a MessageRow object by providing values for its fields
 		 */
-		public RowData(int id, String message, int likes, int dislikes) {
+		public MessageRow(int id, String message, int likes, int dislikes) {
 			this.id = id;
 			this.message = message;
 			this.likes = likes;
@@ -126,9 +126,9 @@ public class Database {
 		}
 	}
 	/**
-	 * RowData2 is the row data for comments
+	 * CommentRow is the row data for comments
 	 */
-	public static class RowData2 {
+	public static class CommentRow {
 		/**
 		 * The ID of this row of the database
 		 */
@@ -143,9 +143,9 @@ public class Database {
 		int messageId;
 
 		/**
-		 * Construct a RowData object by providing values for its fields
+		 * Construct a MessageRow object by providing values for its fields
 		 */
-		public RowData2(int id, String comment, int messageId) {
+		public CommentRow(int id, String comment, int messageId) {
 			this.id = id;
 			this.comment = comment;
 			this.messageId = messageId;
@@ -219,37 +219,37 @@ public class Database {
 		// fail, the whole getDatabase() call should fail
 		try {
 			// NB: we can easily get ourselves in trouble here by typing the
-			//	   SQL incorrectly.  We really should have things like "tblData"
+			//	   SQL incorrectly.  We really should have things like "messageTbl"
 			//	   as constants, and then build the strings for the statements
 			//	   from those constants.
 
 			// Note: no "IF NOT EXISTS" or "IF EXISTS" checks on table 
 			// creation/deletion, so multiple executions will cause an exception
 
-			// Statements for message table (tblData)
+			// Statements for message table (messageTbl)
 			db.mCreateTable = db.mConnection.prepareStatement(
-					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL)"); 
-			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE tblData");
+					"CREATE TABLE messageTbl (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL)"); 
+			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE messageTbl");
 
 			// Standard CRUD operations
-			db.mDeleteOne = db.mConnection.prepareStatement("DELETE FROM tblData WHERE id = ?");
-			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO tblData VALUES (default, ?, 0, 0)");
-			db.mSelectAll = db.mConnection.prepareStatement("SELECT * FROM tblData");
-			db.mSelectOne = db.mConnection.prepareStatement("SELECT * from tblData WHERE id=?");
-			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE tblData SET message = ?, likes = likes + ?, dislikes = dislikes + ? WHERE id = ?");
+			db.mDeleteOne = db.mConnection.prepareStatement("DELETE FROM messageTbl WHERE id = ?");
+			db.mInsertOne = db.mConnection.prepareStatement("INSERT INTO messageTbl VALUES (default, ?, 0, 0)");
+			db.mSelectAll = db.mConnection.prepareStatement("SELECT * FROM messageTbl");
+			db.mSelectOne = db.mConnection.prepareStatement("SELECT * from messageTbl WHERE id=?");
+			db.mUpdateOne = db.mConnection.prepareStatement("UPDATE messageTbl SET message = ?, likes = likes + ?, dislikes = dislikes + ? WHERE id = ?");
 
 
-			// Statements for comment table (tblData2)
+			// Statements for comment table (CommentRow)
 			db.mCreateTable2 = db.mConnection.prepareStatement(
-					"CREATE TABLE tblData2 (id SERIAL PRIMARY KEY, comment VARCHAR(500) NOT NULL, messageId INTEGER NOT NULL)"); 
-			db.mDropTable2 = db.mConnection.prepareStatement("DROP TABLE tblData2");
+					"CREATE TABLE CommentRow (id SERIAL PRIMARY KEY, comment VARCHAR(500) NOT NULL, messageId REFERENCES messageTbl(id)"); 
+			db.mDropTable2 = db.mConnection.prepareStatement("DROP TABLE CommentRow");
 
 			// Standard CRUD operations
-			db.mDeleteOne2 = db.mConnection.prepareStatement("DELETE FROM tblData2 WHERE id = ?");
-			db.mInsertOne2 = db.mConnection.prepareStatement("INSERT INTO tblData2 VALUES (default, ?, ?)");
-			db.mSelectAll2 = db.mConnection.prepareStatement("SELECT * FROM tblData2");
-			db.mSelectOne2 = db.mConnection.prepareStatement("SELECT * from tblData2 WHERE id=?");
-			db.mUpdateOne2 = db.mConnection.prepareStatement("UPDATE tblData2 SET comment = ?, where id=?");
+			db.mDeleteOne2 = db.mConnection.prepareStatement("DELETE FROM CommentRow WHERE id = ?");
+			db.mInsertOne2 = db.mConnection.prepareStatement("INSERT INTO CommentRow VALUES (default, ?, ?)");
+			db.mSelectAll2 = db.mConnection.prepareStatement("SELECT * FROM CommentRow");
+			db.mSelectOne2 = db.mConnection.prepareStatement("SELECT * from CommentRow WHERE id=?");
+			db.mUpdateOne2 = db.mConnection.prepareStatement("UPDATE CommentRow SET comment = ?, where id=?");
 		} catch (SQLException e) {
 			System.err.println("Error creating prepared statement");
 			e.printStackTrace();
@@ -308,12 +308,12 @@ public class Database {
 	 * 
 	 * @return All rows, as an ArrayList
 	 */
-	ArrayList<RowData> selectAll() {
-		ArrayList<RowData> res = new ArrayList<RowData>();
+	ArrayList<MessageRow> selectAll() {
+		ArrayList<MessageRow> res = new ArrayList<MessageRow>();
 		try {
 			ResultSet rs = mSelectAll.executeQuery();
 			while (rs.next()) {
-				res.add(new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
+				res.add(new MessageRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes")));
 			}
 			rs.close();
 			return res;
@@ -330,13 +330,13 @@ public class Database {
 	 * 
 	 * @return The data for the requested row, or null if the ID was invalid
 	 */
-	RowData selectOne(int id) {
-		RowData res = null;
+	MessageRow selectOne(int id) {
+		MessageRow res = null;
 		try {
 			mSelectOne.setInt(1, id);
 			ResultSet rs = mSelectOne.executeQuery();
 			if (rs.next()) {
-				res = new RowData(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
+				res = new MessageRow(rs.getInt("id"), rs.getString("message"), rs.getInt("likes"), rs.getInt("dislikes"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -389,7 +389,7 @@ public class Database {
 	}
 
 	/**
-	 * Create tblData.	If it already exists, this will print an error
+	 * Create messageTbl.	If it already exists, this will print an error
 	 */
 	void createTable() {
 		try {
@@ -400,7 +400,7 @@ public class Database {
 	}
 
 	/**
-	 * Remove tblData from the database.  If it does not exist, this will print
+	 * Remove messageTbl from the database.  If it does not exist, this will print
 	 * an error.
 	 */
 	void dropTable() {
@@ -413,7 +413,7 @@ public class Database {
 
 	
 	/**
-	 * Create tblData2.	If it already exists, this will print an error
+	 * Create CommentRow.	If it already exists, this will print an error
 	 */
 	void createTable2() {
 		try {
@@ -424,7 +424,7 @@ public class Database {
 	}
 
 	/**
-	 * Remove tblData2 from the database.  If it does not exist, this will print
+	 * Remove CommentRow from the database.  If it does not exist, this will print
 	 * an error.
 	 */
 	void dropTable2() {
@@ -459,12 +459,12 @@ public class Database {
 	 * 
 	 * @return All rows, as an ArrayList
 	 */
-	ArrayList<RowData2> selectAll2() {
-		ArrayList<RowData2> res = new ArrayList<RowData2>();
+	ArrayList<CommentRow> selectAll2() {
+		ArrayList<CommentRow> res = new ArrayList<CommentRow>();
 		try {
 			ResultSet rs = mSelectAll2.executeQuery();
 			while (rs.next()) {
-				res.add(new RowData2(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId")));
+				res.add(new CommentRow(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId")));
 			}
 			rs.close();
 			return res;
@@ -481,13 +481,13 @@ public class Database {
 	 * 
 	 * @return The data for the requested row, or null if the ID was invalid
 	 */
-	RowData2 selectOne2(int id) {
-		RowData2 res = null;
+	CommentRow selectOne2(int id) {
+		CommentRow res = null;
 		try {
 			mSelectOne2.setInt(1, id);
 			ResultSet rs = mSelectOne2.executeQuery();
 			if (rs.next()) {
-				res = new RowData2(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId"));
+				res = new CommentRow(rs.getInt("id"), rs.getString("comment"), rs.getInt("messageId"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -496,7 +496,7 @@ public class Database {
 	}
 
 	/**
-	 * Delete a row by ID from tblData2
+	 * Delete a row by ID from CommentRow
 	 * 
 	 * @param id The id of the row to delete
 	 * 
@@ -514,7 +514,7 @@ public class Database {
 	}
 
 	/**
-	 * Update the message for a row in tblData2
+	 * Update the message for a row in CommentRow
 	 * 
 	 * @param id The id of the row to update
 	 * @param message The new message contents
