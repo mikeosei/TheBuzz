@@ -254,18 +254,18 @@ public class Database {
 		 */
 		String lastName;
 		/**
-		 * A brief description of the user (?)
+		 * A brief descriptionription of the user (?)
 		 */
-		String desc;
+		String description;
 
 		/**
 		 * Construct a UserRow object by providing values for its fields
 		 */
-		public UserRow(int id, String firstName, String lastName, String desc) {
+		public UserRow(int id, String firstName, String lastName, String description) {
 			this.id = id;
 			this.firstName = firstName;
 			this.lastName = lastName;
-			this.desc = desc;
+			this.description = description;
 		}
 	}
 
@@ -388,7 +388,7 @@ public class Database {
 				//db.mCreateTable = db.mConnection.prepareStatement("CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL)"); 
 			
 			db.mCreateTable = db.mConnection.prepareStatement(
-					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL, userId INTEGER FOREIGN KEY REFERENCES userTable(id))"); 
+					"CREATE TABLE tblData (id SERIAL PRIMARY KEY, message VARCHAR(500) NOT NULL, likes INTEGER NOT NULL,dislikes INTEGER NOT NULL, userId INTEGER, FOREIGN KEY (userId) REFERENCES userTable(id))"); 
 			db.mDropTable = db.mConnection.prepareStatement("DROP TABLE tblData");
 
 			// Standard CRUD operations
@@ -401,7 +401,7 @@ public class Database {
 
 			// Statements for comment table (commentTable)
 			db.mCreateTable2 = db.mConnection.prepareStatement(
-					"CREATE TABLE commentTable (id SERIAL PRIMARY KEY, comment VARCHAR(500) NOT NULL, messageId INTEGER NOT NULL, userId INTEGER NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) userTable(id) ON DELETE CASCADE)"); 
+					"CREATE TABLE commentTable (id SERIAL PRIMARY KEY, comment VARCHAR(500) NOT NULL, messageId INTEGER NOT NULL, userId INTEGER NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)"); 
 			db.mDropTable2 = db.mConnection.prepareStatement("DROP TABLE commentTable");
 
 			// Standard CRUD operations
@@ -414,7 +414,7 @@ public class Database {
 
 			// Statements for user table (userTable)
 			db.mCreateTable3 = db.mConnection.prepareStatement(
-					"CREATE TABLE userTable (id SERIAL PRIMARY KEY, firstName VARCHAR(500) NOT NULL, lastName VARCHAR(500) NOT NULL, desc VARCHAR(1000) NOT NULL)"); 
+					"CREATE TABLE userTable (id SERIAL PRIMARY KEY, firstName VARCHAR(500) NOT NULL, lastName VARCHAR(500) NOT NULL, description VARCHAR(500) NOT NULL)"); 
 			db.mDropTable3 = db.mConnection.prepareStatement("DROP TABLE userTable");
 
 			// Standard CRUD operations
@@ -422,12 +422,12 @@ public class Database {
 			db.mInsertOne3 = db.mConnection.prepareStatement("INSERT INTO userTable VALUES (default, ?, ?, ?)");
 			db.mSelectAll3 = db.mConnection.prepareStatement("SELECT * FROM userTable");
 			db.mSelectOne3 = db.mConnection.prepareStatement("SELECT * from userTable WHERE id=?");
-			db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET desc = ?, where id=?");
+			db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET description = ?, where id=?");
 
 
 			// Statements for like/dislike table (likeTable)
 			db.mCreateTable4 = db.mConnection.prepareStatement(
-					"CREATE TABLE likeTable (id SERIAL PRIMARY KEY, liked INTEGER NOT NULL, disliked INTEGER NOT NULL, messageId INTEGER NOT NULL, userId INTEGER NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) userTable(id) ON DELETE CASCADE)");
+					"CREATE TABLE likeTable (id SERIAL PRIMARY KEY, liked INTEGER NOT NULL, disliked INTEGER NOT NULL, messageId INTEGER NOT NULL, userId INTEGER NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
 			db.mDropTable4 = db.mConnection.prepareStatement("DROP TABLE likeTable");
 
 			// Standard CRUD operations
@@ -759,12 +759,12 @@ public class Database {
 	 * 
 	 * @return The number of rows that were inserted
 	 */
-	int insertRow3(String firstName, String lastName, String desc) {
+	int insertRow3(String firstName, String lastName, String description) {
 		int count = 0;
 		try {
 			mInsertOne3.setString(1, firstName);
 			mInsertOne3.setString(2, lastName);
-			mInsertOne3.setString(3, desc);
+			mInsertOne3.setString(3, description);
 			count += mInsertOne3.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -782,7 +782,7 @@ public class Database {
 		try {
 			ResultSet rs = mSelectAll3.executeQuery();
 			while (rs.next()) {
-				res.add(new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("desc")));
+				res.add(new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("description")));
 			}
 			rs.close();
 			return res;
@@ -805,7 +805,7 @@ public class Database {
 			mSelectOne3.setInt(1, id);
 			ResultSet rs = mSelectOne3.executeQuery();
 			if (rs.next()) {
-				res = new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("desc"));
+				res = new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("description"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
