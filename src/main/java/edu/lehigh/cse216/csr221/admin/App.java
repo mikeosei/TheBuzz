@@ -13,7 +13,7 @@ import java.util.Map;
 public class App {
 
     // Total number of tables
-    private static final int NUM_TABLES = 3;
+    private static final int NUM_TABLES = 4;
 
     /**
      * Print the menu for our program
