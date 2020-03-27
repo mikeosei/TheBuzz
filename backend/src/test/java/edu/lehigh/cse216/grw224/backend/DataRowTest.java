@@ -25,33 +25,48 @@ public class DataRowTest extends TestCase {
     }
 
     /**
-     * Ensure that the constructor populates every field of the object it
+     * Ensure that the first constructor populates every field of the object it
      * creates
      */
-    public void testConstructor() {
-        String title = "Test Title";
+    public void testConstructor1() {
         String content = "Test Content";
         int id = 17;
-        DataRow d = new DataRow(id, title, content);
+        DataRow d = new DataRow(id, content);
 
-        assertTrue(d.mTitle.equals(title));
         assertTrue(d.mContent.equals(content));
         assertTrue(d.mId == id);
-        assertFalse(d.mCreated == null);
+        assertTrue(d.mLikes == 0);
+        assertTrue(d.mDislikes == 0);
+    }
+
+    /**
+     * Ensure that the second constructor populates every field of the object it
+     * creates
+     */
+    public void testConstructor2() {
+        String content = "Test Content";
+        int id = 17;
+        DataRow d = new DataRow(id, content, 3, 4);
+
+        assertTrue(d.mContent.equals(content));
+        assertTrue(d.mId == id);
+        assertTrue(d.mLikes == 3);
+        assertTrue(d.mDislikes == 4);
     }
 
     /**
      * Ensure that the copy constructor works correctly
      */
     public void testCopyconstructor() {
-        String title = "Test Title For Copy";
         String content = "Test Content For Copy";
         int id = 177;
-        DataRow d = new DataRow(id, title, content);
+        DataRow d = new DataRow(id, content);
+        d.mLikes = 3;
+        d.mDislikes = 4;
         DataRow d2 = new DataRow(d);
-        assertTrue(d2.mTitle.equals(d.mTitle));
         assertTrue(d2.mContent.equals(d.mContent));
         assertTrue(d2.mId == d.mId);
-        assertTrue(d2.mCreated.equals(d.mCreated));
+        assertTrue(d2.mLikes == d.mLikes);
+        assertTrue(d2.mDislikes == d.mDislikes);
     }
 }

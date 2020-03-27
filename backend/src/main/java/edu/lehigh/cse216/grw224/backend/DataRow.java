@@ -19,20 +19,19 @@ public class DataRow {
     public final int mId;
 
     /**
-     * The title for this row of data
-     */
-    public String mTitle;
-
-    /**
      * The content for this row of data
      */
     public String mContent;
 
     /**
-     * The creation date for this row of data.  Once it is set, it cannot be 
-     * changed
+     * The likes for this entry
      */
-    public final Date mCreated;
+    public int mLikes;
+
+    /**
+     * The dislikes for this entry
+     */
+    public int mDislikes;
 
     /**
      * Create a new DataRow with the provided id and title/content, and a 
@@ -41,16 +40,31 @@ public class DataRow {
      * 
      * @param id The id to associate with this row.  Assumed to be unique 
      *           throughout the whole program.
-     * 
-     * @param title The title string for this row of data
-     * 
      * @param content The content string for this row of data
      */
-    DataRow(int id, String title, String content) {
+    DataRow(int id, String content) {
         mId = id;
-        mTitle = title;
         mContent = content;
-        mCreated = new Date();
+        mLikes = 0;
+        mDislikes = 0;
+    }
+
+    /**
+     * Create a new DataRow with the provided id and content, a 
+     * creation date based on the system clock at the time the constructor was
+     * called, as well as setting the likes and dislikes
+     * 
+     * @param id The id to associate with this row.  Assumed to be unique 
+     *           throughout the whole program.
+     * @param content The content string for this row of data
+     * @param likes The number of likes for the message
+     * @param dislikes The number of dislikes for the message
+     */
+    DataRow(int id, String content, int likes, int dislikes) {
+        mId = id;
+        mContent = content;
+        mLikes = likes;
+        mDislikes = dislikes;
     }
 
     /**
@@ -59,8 +73,8 @@ public class DataRow {
     DataRow(DataRow data) {
         mId = data.mId;
         // NB: Strings and Dates are immutable, so copy-by-reference is safe
-        mTitle = data.mTitle;
         mContent = data.mContent;
-        mCreated = data.mCreated;
+        mLikes = data.mLikes;
+        mDislikes = data.mDislikes;
     }
 }
