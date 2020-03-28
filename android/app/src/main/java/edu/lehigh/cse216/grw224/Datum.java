@@ -34,7 +34,5 @@ public class Datum {
         this.mContent = content;
         this.mLikes = likes;
         this.mDislikes= dislikes;
-
-
     }
 }
