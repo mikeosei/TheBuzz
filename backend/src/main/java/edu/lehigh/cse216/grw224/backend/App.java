@@ -310,6 +310,10 @@ public class App {
             response.status(200);
             response.type("application/json");
 
+
+            String idTokenString = request.headers("access_token");
+
+
             /*
              * String transport = "https://accounts.google.com/o/oauth2/auth?redirect_u" +
              * "ri=https%3A%2F%2Fserene-gorge-86582.herokuapp.com&response_type=code&client_id="
