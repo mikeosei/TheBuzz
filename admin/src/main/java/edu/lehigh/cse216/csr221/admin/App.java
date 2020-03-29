@@ -235,7 +235,7 @@ public class App {
                     Database.UserRow res = db.selectOne3(id);
                     if (res != null) {
                         System.out.println("  [" + res.id + "] ");
-                        System.out.println("  --> " + res.firstName + " " + res.lastName + " - " + res.description);
+                        System.out.println("  --> " + res.firstName + " " + res.lastName + " Email: " + res.email + " User Id: " + res.userId);
                     }
                 }
                 else if (currentTable == 3)
@@ -280,7 +280,7 @@ public class App {
                     System.out.println("  Current Database Contents");
                     System.out.println("  -------------------------");
                     for (Database.UserRow rd : res) {
-                        System.out.println("  [ID # " + rd.id + "]" + "  Name: " + rd.firstName + " " + rd.lastName + " descriptionription: " + rd.description);
+                        System.out.println("  [ID # " + rd.id + "]" + "  Name: " + rd.firstName + " " + rd.lastName + " email: " + rd.email + " User Id: " + rd.userId);
                     }
                 }
                 else if (currentTable == 3)
@@ -359,10 +359,11 @@ public class App {
                 {
                     String firstName = getString(in, "Enter the First Name");
                     String lastName = getString(in, "Enter the Last Name");
-                    String description = getString(in, "Enter the descriptionription");
+                    String email = getString(in, "Enter the email");
+                    String userId = getString(in, "Enter the user Id");
                     //if (message.equals(""))
                         //continue;
-                    int res = db.insertRow3(firstName,lastName,description);
+                    int res = db.insertRow3(firstName,lastName,email,userId);
                     System.out.println(res + " rows added");
                 }
                 else if (currentTable == 3)
@@ -402,8 +403,8 @@ public class App {
                     int id = getInt(in, "Enter the row ID :> ");
                     if (id == -1)
                         continue;
-                    String newdescription = getString(in, "Enter the new descriptionription");
-                    int res = db.updateOne3(id, newdescription);
+                    String newemail = getString(in, "Enter the new email");
+                    int res = db.updateOne3(id, newemail);
                     if (res == -1)
                         continue;
                     System.out.println("  " + res + " rows updated");

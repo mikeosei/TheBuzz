@@ -254,18 +254,23 @@ public class Database {
 		 */
 		String lastName;
 		/**
-		 * A brief descriptionription of the user (?)
+		 * The email of the user
 		 */
-		String description;
+		String email;
+		/**
+		 * The userId of the user (note: different than the userId used by the other tables)
+		 */
+		String userId;
 
 		/**
 		 * Construct a UserRow object by providing values for its fields
 		 */
-		public UserRow(int id, String firstName, String lastName, String description) {
+		public UserRow(int id, String firstName, String lastName, String email, String userId) {
 			this.id = id;
 			this.firstName = firstName;
 			this.lastName = lastName;
-			this.description = description;
+			this.email = email;
+			this.userId = userId;
 		}
 	}
 
@@ -414,15 +419,15 @@ public class Database {
 
 			// Statements for user table (userTable)
 			db.mCreateTable3 = db.mConnection.prepareStatement(
-					"CREATE TABLE userTable (id SERIAL PRIMARY KEY, firstName VARCHAR(500) NOT NULL, lastName VARCHAR(500) NOT NULL, description VARCHAR(500) NOT NULL)"); 
+					"CREATE TABLE userTable (id SERIAL PRIMARY KEY, firstName VARCHAR(500) NOT NULL, lastName VARCHAR(500) NOT NULL, email VARCHAR(500) NOT NULL, userId VARCHAR(500) NOT NULL)"); 
 			db.mDropTable3 = db.mConnection.prepareStatement("DROP TABLE userTable");
 
 			// Standard CRUD operations
 			db.mDeleteOne3 = db.mConnection.prepareStatement("DELETE FROM userTable WHERE id = ?");
-			db.mInsertOne3 = db.mConnection.prepareStatement("INSERT INTO userTable VALUES (default, ?, ?, ?)");
+			db.mInsertOne3 = db.mConnection.prepareStatement("INSERT INTO userTable VALUES (default, ?, ?, ?, ?)");
 			db.mSelectAll3 = db.mConnection.prepareStatement("SELECT * FROM userTable");
 			db.mSelectOne3 = db.mConnection.prepareStatement("SELECT * from userTable WHERE id=?");
-			db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET description = ?, where id=?");
+			db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET email = ?, where id=?");
 
 
 			// Statements for like/dislike table (likeTable)
@@ -759,12 +764,13 @@ public class Database {
 	 * 
 	 * @return The number of rows that were inserted
 	 */
-	int insertRow3(String firstName, String lastName, String description) {
+	int insertRow3(String firstName, String lastName, String email, String userId) {
 		int count = 0;
 		try {
 			mInsertOne3.setString(1, firstName);
 			mInsertOne3.setString(2, lastName);
-			mInsertOne3.setString(3, description);
+			mInsertOne3.setString(3, email);
+			mInsertOne3.setString(4, userId);
 			count += mInsertOne3.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -782,7 +788,7 @@ public class Database {
 		try {
 			ResultSet rs = mSelectAll3.executeQuery();
 			while (rs.next()) {
-				res.add(new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("description")));
+				res.add(new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("email"), rs.getString("userId")));
 			}
 			rs.close();
 			return res;
@@ -805,7 +811,7 @@ public class Database {
 			mSelectOne3.setInt(1, id);
 			ResultSet rs = mSelectOne3.executeQuery();
 			if (rs.next()) {
-				res = new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("description"));
+				res = new UserRow(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getString("email"), rs.getString("userId"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

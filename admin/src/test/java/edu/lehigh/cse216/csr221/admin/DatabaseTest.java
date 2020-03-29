@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.Map;
 
-import edu.lehigh.cse216.csr221.admin.Database.RowData;
+//import edu.lehigh.cse216.csr221.admin.Database.RowData;
 
 /**
  * Unit test for simple App.
