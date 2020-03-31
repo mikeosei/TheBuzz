@@ -13,4 +13,11 @@ public class SimpleRequest {
      * The message being provided by the client.
      */
     public String mMessage;
+
+    /**
+     * The comment being provided by the client.
+     */
+    public String mComment;
+
+
 }

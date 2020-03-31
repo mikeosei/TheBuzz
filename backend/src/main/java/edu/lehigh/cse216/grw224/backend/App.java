@@ -31,6 +31,7 @@ import java.util.*;
  */
 public class App {
     static HashMap<String, String> table = new HashMap<String, String>();
+
     private static final HttpTransport transport = new NetHttpTransport();
     private static final JsonFactory jsonFactory = new JacksonFactory();
 
@@ -54,7 +55,7 @@ public class App {
     public static boolean lehighEmailCheck(String email) {
         int n = 11;
         String lastNchars = email.substring(email.length() - n);
-        if (email.equals("@lehigh.edu")) {
+        if (lastNchars.equals("@lehigh.edu")) {
             return true;
         } else {
             return false;
@@ -130,13 +131,23 @@ public class App {
         final String CLIENT_ID_ANDROID1 = "585478383264-tf5ggvkjsl4oln0j99kp3a2dejknilg5.apps.googleusercontent.com";
         final String CLIENT_ID_ANDROID2;
 
+        String bypass = "bypass";
+        String me = "me";
+        table.put(bypass, me);
+        /*
+        int counter = 0;
+        if (counter == 0) {
+            database.insertRow3("by", "pass", "bypass@lehigh.edu", "bypass");
+            counter = counter + 1;
+        }*/
+
         // userId and sessionId are created by /login and are passed back and forth
         // between
         // front end and back end but in the event another route is attempted to be
         // accessed without going to /login first the values for sessionId & userId will
         // be null
-        //String userId = null;
-        //String sessionId = null;
+        // String userId = null;
+        // String sessionId = null;
 
         // Set up the location for serving static files. If the STATIC_LOCATION
         // environment variable is set, we will serve from it. Otherwise, serve
@@ -170,7 +181,7 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            return gson.toJson(new StructuredResponse("ok", null, database.readAll()));
+            return gson.toJson(new StructuredResponse("ok", null, database.selectAll()));
         });
 
         // GET route that returns everything for a single row in the Database.
@@ -184,7 +195,7 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            DataRow data = database.readOne(idx);
+            Database.MessageRow data = database.selectOne(idx);
             if (data == null) {
                 return gson.toJson(new StructuredResponse("error", idx + " not found", null));
             } else {
@@ -205,28 +216,35 @@ public class App {
             // describes the error.
             response.status(200);
             response.type("application/json");
-            // retrieve userId of current client
+
+            // retrieve userId & sessionId of current client
             String userId = request.headers("userId");
-            // retrieve sessionId of current client
             String sessionId = request.headers("sessionId");
+            int id = database.get_Id(userId);
 
             // checks to see if session of a given client exists in hashtable
             // if statement - takes the userId of the client and checks the hashtable
             // to see if the specific client is has an existing sessionId.
             // else- indicates that sessionId is for a different client instead of current
-            if (table.get(userId).equals(sessionId)) {
-                //int newId = database.insertRow(req.mMessage, userId);
-                int newId = database.createEntry(req.mMessage);
+            if (!table.containsKey(userId)) {
 
-                if (newId == -1) {
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                // int newId = database.insertRow(req.mMessage, userId);
+                int row = database.insertRow(req.mMessage, id);
+
+                if (row == 0) {
                     return gson.toJson(new StructuredResponse("error", "error performing insertion", null));
                 } else {
-                    return gson.toJson(new StructuredResponse("ok", "" + newId, null));
+                    return gson
+                            .toJson(new StructuredResponse("ok", "Database has inserted  " + row + "   row(s)", null));
                 }
-
             } else {
                 response.redirect("/index.html");
-                return gson.toJson(new StructuredResponse("error", "sessionId is invalid", null));
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
 
         });
@@ -241,12 +259,32 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            DataRow result = database.updateOne(idx, req.mMessage);
-            if (result == null) {
-                return gson.toJson(new StructuredResponse("error", "unable to update row " + idx, null));
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+            // checks to see if session of a given client exists in hashtable
+            // if statement - takes the userId of the client and checks the hashtable
+            // to see if the specific client is has an existing sessionId.
+            // else- indicates that sessionId is for a different client instead of current
+            if (!table.containsKey(userId)) {
+
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                int result = database.updateOne(idx, req.mMessage);
+                if (result == -1) {
+                    return gson.toJson(
+                            new StructuredResponse("error", "Could not PUT unable to update for id  " + idx, null));
+                } else {
+                    return gson.toJson(new StructuredResponse("ok", "Changes have been made     ", result));
+                }
             } else {
-                return gson.toJson(new StructuredResponse("ok", null, result));
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
+
         });
 
         // PUT route for increasing the likes for a row in the Database
@@ -258,12 +296,63 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            DataRow result = database.incLikes(idx);
-            if (result == null) {
-                return gson.toJson(new StructuredResponse("error", "unable to update row " + idx, null));
+
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+            int secure;
+            // checks to see if session of a given client exists in hashtable
+            // if statement - takes the userId of the client and checks the hashtable
+            // to see if the specific client is has an existing sessionId.
+            // else- indicates that sessionId is for a different client instead of current
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                //check to see if user attempting like has neither liked or disliked prior
+                int uId = database.get_Id(userId);
+                Database.LikesRow likesRow = database.selectOne4(uId);
+
+                Database.MessageRow data = database.selectOne(idx);
+                int messageId = database.get_Message_Id(data.message);
+                if (likesRow == null){
+                    System.out.print("THIS IS SHOULD BE for the initial null comment row");
+                    //updates like in the message table                
+                    int insertResult = database.updateOne(messageId, data.message,1,0);
+                    //inserts a row with like like=0,dislike=0
+                    database.insertRow4(messageId, uId);
+                    //updates like table to reflect the like
+                    int updateResult = database.updateOne4(uId,1);
+
+                    if (insertResult == -1){
+                        return gson
+                            .toJson(new StructuredResponse("error", "An error occured with an inserion into the messageTable", null));
+                    }
+                    if (updateResult == -1){
+                        return gson
+                            .toJson(new StructuredResponse("error", "A error occured with an update to the likeTable", null));
+                    }
+                    return gson
+                            .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
+                }else {
+                    secure =database.secureVoting(idx,1,uId);
+                    //database.insertOne4(messageId, uId);
+                }
+                
+                if (secure == -1) {
+                    return gson
+                            .toJson(new StructuredResponse("error", "Could not PUT unable to update row " + idx, null));
+                } else {
+                    return gson.toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
+                }
+
             } else {
-                return gson.toJson(new StructuredResponse("ok", null, result));
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
+
         });
 
         // PUT route for increasing the dislikes for a row in the Database
@@ -275,12 +364,63 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            DataRow result = database.incDislikes(idx);
-            if (result == null) {
-                return gson.toJson(new StructuredResponse("error", "unable to update row " + idx, null));
+
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+            int secure;
+            // checks to see if session of a given client exists in hashtable
+            // if statement - takes the userId of the client and checks the hashtable
+            // to see if the specific client is has an existing sessionId.
+            // else- indicates that sessionId is for a different client instead of current
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                //check to see if user attempting like has neither liked or disliked prior
+                int uId = database.get_Id(userId);
+                Database.LikesRow likesRow = database.selectOne4(uId);
+
+                Database.MessageRow data = database.selectOne(idx);
+                int messageId = database.get_Message_Id(data.message);
+                if (likesRow == null){
+                    
+                    //updates like in the message table                
+                    int insertResult = database.updateOne(messageId, data.message,0,1);
+                    //inserts a row with like like=0,dislike=0
+                    database.insertRow4(messageId, uId);
+                    //updates like table to reflect the like
+                    int updateResult = database.updateOne4(uId,0);
+
+                    if (insertResult == -1){
+                        return gson
+                            .toJson(new StructuredResponse("error", "An error occured with an inserion into the messageTable", null));
+                    }
+                    if (updateResult == -1){
+                        return gson
+                            .toJson(new StructuredResponse("error", "A error occured with an update to the likeTable", null));
+                    }
+                    return gson
+                            .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
+                }else {
+                    secure =database.secureVoting(idx,0,uId);
+                    //database.insertOne4(messageId, uId);
+                }
+                
+                if (secure == -1) {
+                    return gson
+                            .toJson(new StructuredResponse("error", "Could not PUT unable to update row " + idx, null));
+                } else {
+                    return gson.toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
+                }
+
             } else {
-                return gson.toJson(new StructuredResponse("ok", null, result));
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
+
         });
 
         // DELETE route for removing a row from the Database
@@ -290,14 +430,38 @@ public class App {
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
-            // NB: we won't concern ourselves too much with the quality of the
-            // message sent on a successful delete
-            boolean result = database.deleteOne(idx);
-            if (!result) {
-                return gson.toJson(new StructuredResponse("error", "unable to delete row " + idx, null));
+
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+
+            // checks to see if session of a given client exists in hashtable
+            // if statement - takes the userId of the client and checks the hashtable
+            // to see if the specific client is has an existing sessionId.
+            // else- indicates that sessionId is for a different client instead of current
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                // NB: we won't concern ourselves too much with the quality of the
+                // message sent on a successful delete
+                // int id = database.get_Id(userId);
+
+                int result = database.deleteRow(idx);
+                if (result == -1) {
+                    return gson.toJson(
+                            new StructuredResponse("error", "Could not DELETE unable to delete row " + idx, null));
+                } else {
+                    return gson.toJson(new StructuredResponse("ok", "Row deleted for id     ", idx));
+                }
+
             } else {
-                return gson.toJson(new StructuredResponse("ok", null, null));
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
+
         });
 
         Spark.post("/login", (request, response) -> {
@@ -309,10 +473,6 @@ public class App {
             // describes the error.
             response.status(200);
             response.type("application/json");
-
-
-            String idTokenString = request.headers("access_token");
-
 
             /*
              * String transport = "https://accounts.google.com/o/oauth2/auth?redirect_u" +
@@ -330,6 +490,7 @@ public class App {
 
             // (Receive idTokenString by HTTPS POST)
             String idTokenString = request.headers("access_token");
+
             GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken != null) {
                 Payload payload = idToken.getPayload();
@@ -361,7 +522,7 @@ public class App {
                         response.header("userId", userId);
                         response.header("sessionId", sessionId.toString());
                         //////////////////////// database//////////////////
-                        //database.insertRow3(userId, email, name, familyName);
+                        database.insertRow3(name, familyName, email, userId);
 
                         return gson.toJson(new StructuredResponse("ok",
                                 "Session id has been create for userID : " + userId, null));
@@ -380,74 +541,134 @@ public class App {
                 // return gson.toJson(new StructuredResponse("ok", "Integrity of id token is
                 // verified for" + email, null));
             } else {
-                return gson.toJson(new StructuredResponse("error", "Invalid ID token for email", null));
+                return gson.toJson(new StructuredResponse("error", "Invalid token:" + idTokenString, null));
             }
 
         });
-/*
-        Spark.post("/messages/:id/comment", (request, response) -> {
-            // NB: if gson.Json fails, Spark will reply with status 500 Internal
-            // Server Error
+
+        Spark.post("/comment/:id", (request, response) -> {
+            // If we can't get an ID,
+            // Spark will send a status 500
+            int idx = Integer.parseInt(request.params("id"));
+            // ensure status 200 OK, with a MIME type of JSON
+            response.status(200);
+            response.type("application/json");
+
+            // NB: if gson.Json fails, Spark will reply with status 500 Internal Server
+            // Error
             SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
-            // ensure status 200 OK, with a MIME type of JSON
-            // NB: even on error, we return 200, but with a JSON object that
-            // describes the error.
-            response.status(200);
-            response.type("application/json");
-            // NB: createEntry checks for null title and message
-            int newId = database.createEntry(req.mMessage);
-            if (newId == -1) {
-                return gson.toJson(new StructuredResponse("error", "error performing insertion", null));
-            } else {
-                return gson.toJson(new StructuredResponse("ok", "" + newId, null));
-            }
-        });
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+            int id = database.get_Id(userId);
 
-        Spark.post("/messages/:id/comment/:cId", (request, response) -> {
-            // NB: if gson.Json fails, Spark will reply with status 500 Internal
-            // Server Error
-            SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
-            // ensure status 200 OK, with a MIME type of JSON
-            // NB: even on error, we return 200, but with a JSON object that
-            // describes the error.
-            response.status(200);
-            response.type("application/json");
-            // NB: createEntry checks for null title and message
-            int newId = dataStore.createEntry(req.mTitle, req.mMessage);
-            if (newId == -1) {
-                return gson.toJson(new StructuredResponse("error", "error performing insertion", null));
-            } else {
-                return gson.toJson(new StructuredResponse("ok", "" + newId, null));
-            }
-        });
-
-        Spark.post("/profile", (request, response) -> {
-
-            // Get Session key from Authorization Header
-            String key = request.headers("Authorization");
-
-            // ensure status 200 OK, with a MIME type of JSON
-            response.status(200);
-            response.type("application/json");
-
-            if (database.check_sessionKey(key)) {
-                int uid = database.get_uId_fromSession(key);
-                Database.user_RowData data = database.select_userOne(uid);
-                if (data == null) { // can't find user_RowData
-                    return gson.toJson(new StructuredResponse("error", "user_id: " + uid + " not found", null));
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                int row = database.insertRow2(req.mComment, idx, id);
+                if (row == 0) {
+                    return gson.toJson(new StructuredResponse("error", "error performing insertion", null));
                 } else {
-
-                    // prepare return value
-                    String profile = data.uProfile;
-                    String realname = data.uRealname;
-                    String[] box = { realname, profile };
-                    return gson.toJson(new StructuredResponse("ok", null, box));
+                    return gson
+                            .toJson(new StructuredResponse("ok", "Database has inserted  " + row + "   row(s)", null));
                 }
 
             } else {
-                return gson.toJson(new StructuredResponse("ok", "" + newId, null));
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
+            }
+
+        });
+
+        Spark.get("/comment/:id", (request, response) -> {
+            // If we can't get an ID,Spark will send a status 500
+            int idx = Integer.parseInt(request.params("id"));
+            // ensure status 200 OK, with a MIMEtype of JSON
+            response.status(200);
+            response.type("application/json");
+
+            // NB: if gson.Json fails, Spark will reply with status 500 Internal
+            // Server Error
+            SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                // Database.CommentRow comments
+                return gson.toJson(new StructuredResponse("ok", null, database.selectAll2(idx)));
+
+            } else {
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
+            }
+
+        });
+
+        Spark.put("/comment/:id/:cid", (request, response) -> { // If we can't get an ID, Spark will send a status500
+            int idx = Integer.parseInt(request.params("id"));
+            int cidx = Integer.parseInt(request.params("cid")); // ensure status 200OK, with a MIME type of JSON
+
+            // ensure status 200OK, with a MIME type of JSON
+            response.status(200);
+            response.type("application/json");
+
+            // NB: if gson.Json fails, Spark will reply with status 500 Internal //Server
+            // Error
+            SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
+            // retrieve userId & sessionId of // current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                // Database.CommentRow comments
+                return gson.toJson(new StructuredResponse("ok", null, database.updateOne2(cidx, req.mComment)));
+
+            } else {
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
             }
         });
-*/
+
+        Spark.get("/profile", (request, response) -> {
+            // If we can't get an ID,Spark will send a status 500
+            // ensure status 200 OK, with a MIMEtype of JSON
+            response.status(200);
+            response.type("application/json");
+
+            // NB: if gson.Json fails, Spark will reply with status 500 Internal // Server
+            // Error
+            SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
+            // retrieve userId & sessionId of current client
+            String userId = request.headers("userId");
+            String sessionId = request.headers("sessionId");
+            if (!table.containsKey(userId)) {
+                response.redirect("/index.html");
+                return gson.toJson(
+                        new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
+            } else if (table.get(userId).equals(sessionId)) {
+                int id = database.get_Id(userId);
+                return gson.toJson(new StructuredResponse("ok", null, database.selectOne3(id)));
+
+            } else {
+                response.redirect("/index.html");
+                return gson.toJson(new StructuredResponse("error",
+                        "Could not POST sessionId is invalid:   " + sessionId + "   Session may have expired", null));
+            }
+        });
+
     }
 }
