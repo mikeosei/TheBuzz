@@ -626,8 +626,8 @@ public class Database {
 		// votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
 		try {
 			mUpdateOne.setString(1, message);
-			mUpdateOne.setInt(2, like);//# of upvotes to add
-			mUpdateOne.setInt(3, dislike);//# of downvotes to add
+			mUpdateOne.setInt(2, votes[0]);//# of upvotes to add
+			mUpdateOne.setInt(3, votes[1]);//# of downvotes to add
 			mUpdateOne.setInt(4, id);
 
 			res = mUpdateOne.executeUpdate();

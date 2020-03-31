@@ -52,7 +52,7 @@ public class App {
         return defaultVal;
     }
 
-    public static boolean lehighEmailCheck(String email) {
+    static boolean lehighEmailCheck(String email) {
         int n = 11;
         String lastNchars = email.substring(email.length() - n);
         if (lastNchars.equals("@lehigh.edu")) {
@@ -316,8 +316,8 @@ public class App {
 
                 Database.MessageRow data = database.selectOne(idx);
                 int messageId = database.get_Message_Id(data.message);
-                if (likesRow == null){
-                    System.out.print("THIS IS SHOULD BE for the initial null comment row");
+                if (likesRow != null){
+                    
                     //updates like in the message table                
                     int insertResult = database.updateOne(messageId, data.message,1,0);
                     //inserts a row with like like=0,dislike=0
@@ -336,7 +336,7 @@ public class App {
                     return gson
                             .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
                 }else {
-                    secure =database.secureVoting(idx,1,uId);
+                    secure =database.secureVoting(messageId,1,uId);
                     //database.insertOne4(messageId, uId);
                 }
                 
@@ -404,7 +404,7 @@ public class App {
                     return gson
                             .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
                 }else {
-                    secure =database.secureVoting(idx,0,uId);
+                    secure =database.secureVoting(messageId,0,uId);
                     //database.insertOne4(messageId, uId);
                 }
                 
