@@ -35,4 +35,5 @@ public class Datum {
         this.mLikes = likes;
         this.mDislikes= dislikes;
     }
+
 }

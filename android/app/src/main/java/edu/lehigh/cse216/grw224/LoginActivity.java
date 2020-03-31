@@ -1,7 +1,13 @@
 package edu.lehigh.cse216.grw224;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -13,18 +19,26 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
 
     /**
      * mGoogleSignInClient holds the data for user log in
      */
-    GoogleSignInClient mGoogleSignInClient;
+    static GoogleSignInClient mGoogleSignInClient;
 
     /**
-     * Placeholder for handSignInResult method
+     * userID is the ID of the logged in user
      */
-    private static final String TAG = "";
+     public static int userId;
+
+    /**
+     * sessionId of the logged in user
+     */
+    String sessionId = "";
 
     /**
      * Request code for starting a new activity
@@ -40,36 +54,24 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account != null) {
-            mGoogleSignInClient.signOut()
-                    .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            // ...
-                        }
-                    });
-        }
-        else {
-            setContentView(R.layout.login);
-            // Request user data to log in to the app
-            // Configure sign-in to request the user's ID, email address, and basic
-            // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken("585478383264-j9obqp66iqsied7br8n9c1a17b8l6ptd.apps.googleusercontent.com")
-                    .requestEmail()
-                    .build();
-            // Build a GoogleSignInClient with the options specified by gso.
-            mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-            // Add click functionality to login button
-            findViewById(R.id.sign_in_button).setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    if (v.getId() == R.id.sign_in_button) {
-                        signIn();
-                    }
+        setContentView(R.layout.login);
+        // Request user data to log in to the app
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("585478383264-j9obqp66iqsied7br8n9c1a17b8l6ptd.apps.googleusercontent.com")
+                .requestEmail()
+                .build();
+        // Build a GoogleSignInClient with the options specified by gso.
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        // Add click functionality to login button
+        findViewById(R.id.sign_in_button).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (v.getId() == R.id.sign_in_button) {
+                    signIn();
                 }
-            });
-        }
+            }
+        });
     }
 
     /*
@@ -98,36 +100,89 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /*
-    handleSignInResult attempts to sign in the user
+    handleSignInResult signs in the user
      */
-    // TODO: May have to pass a currently signed-in user to backend
-    // TODO: by sending the ID token for validation from server
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            final GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             //token passed to backend
             String token = account.getIdToken();
-            //unique user id
-            String accountID = account.getId();
-            // TODO: send request to backend with id token and account id
-
-            // Signed in successfully, show authenticated UI.
-            updateUI(account);
-        } catch (ApiException e) {
+            RequestQueue queue = VolleySingleton.getRequestQueue(this);
+            Intent i = new Intent();
+            String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
+            JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, null,
+                    new Response.Listener<JSONObject>() {
+                        /*
+                        @param response represents status message that backend will return if the status is ok then we proceed
+                         */
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                String backendResponse = response.getString("mData");
+                                JSONObject ob = new JSONObject(backendResponse);
+                                JSONArray json =  ob.getJSONArray("mData");
+                                for (int i = 0; i < json.length(); ++i) {
+                                    sessionId = json.getJSONObject(i).getString("sessionId");
+                                    userId = json.getJSONObject(i).getInt("userId");
+                                    Log.d("kpb222", "" + sessionId + " " + userId);
+                                    updateUI();
+                                }
+                            } catch (final JSONException e) {
+                                Log.d("kpb222", "Error parsing JSON file for POST request: " + e.getMessage());
+                                return;
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        if (error != null) {
+                            Log.d("kpb222", "stack trace below");
+                            error.printStackTrace();
+                            //TODO: You shouldn't go to the main activity page upon a failed login,
+                            //TODO:but I do just so I could see other functionality. Should delete when login works correctly
+                            updateUI();
+                        }
+                    }
+                });
+            queue.add(requesting);
+            setResult(Activity.RESULT_OK, i);
+            updateUI();
+        }
+        catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
-            updateUI(null);
+            Log.w("kpb222", "signInResult:failed code= " + e.getStatusCode());
         }
     }
+
 
     /*
     updateUI redirects user to Main Activity page upon successful login
     @param account  the account of the user that has logged in
      */
-    public void updateUI(GoogleSignInAccount account) {
+    public void updateUI() {
         startActivity(new Intent(this, MainActivity.class));
         setContentView(R.layout.activity_main);
+    }
+
+    /*
+    getUserId allows other classes to access the logged in user id for requests
+     */
+    public static int getUserId() {
+        return userId;
+    }
+
+    /*
+    signOut is called to sign the user out
+     */
+    public static void signOut() {
+        mGoogleSignInClient.signOut()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        //App will automatically go back to login screen
+                    }
+                });
     }
 
 }

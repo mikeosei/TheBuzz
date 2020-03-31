@@ -38,7 +38,6 @@ public class SecondActivity extends AppCompatActivity {
                 if (!et.getText().toString().equals("") ) {
                     Intent i = new Intent();
                     final JSONObject messageData = new JSONObject();
-                    //JSONObject messageData = new JSONObject();
                     try {
                         messageData.put("mMessage", et.getText().toString());
                     }catch(final JSONException e){

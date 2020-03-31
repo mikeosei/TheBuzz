@@ -28,13 +28,20 @@
         android:id="@+id/buttonLikes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@LIKE" />
+        android:text="Like" />
 
     <Button
         android:id="@+id/buttonDislikes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@DISLIKE" />
+        android:text="Dislike" />
+
+    <Button
+        android:id="@+id/buttonComment"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="Comment"
+        />
 
     <View
         android:id="@+id/divider"

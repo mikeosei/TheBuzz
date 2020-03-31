@@ -25,8 +25,20 @@ public class MainActivity extends AppCompatActivity {
      * mData holds the data we get from Volley
      */
     ArrayList<Datum> mData = new ArrayList<>();
+
+    /**
+     * likeCounter and dislikeCounter will hold the data for the likes
+     * and dislikes on messages
+     */
     int likeCounter = 0;
     int dislikeCounter = 0;
+
+    /*
+    messageDisliked and messageLiked will be referenced when we need to see if the user
+    has already liked/disliked a given message
+     */
+    int messageDisliked = -1;
+    int messageLiked = -1;
 
     /*
     onCreate is where you initialize your activity
@@ -43,19 +55,17 @@ public class MainActivity extends AppCompatActivity {
         // Instantiate the RequestQueue.
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
         String url = "https://lilchengs.herokuapp.com/messages";
-        Log.d("mfs409", "testung bbbbbbbbbb ");
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        //  final ArrayList<String> myList = new ArrayList<>();
                         populateListFromVolley(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("grw224", "That didn't work!");
+                Log.e("kpb222", "That didn't work!");
             }
         });
         // Add the request to the RequestQueue.
@@ -68,32 +78,31 @@ public class MainActivity extends AppCompatActivity {
     public void refresh(){
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
         String url = "https://lilchengs.herokuapp.com/messages";
-        Log.d("mfs409", "testung bbbbbbbbbb ");
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        //  final ArrayList<String> myList = new ArrayList<>();
                         populateListFromVolley(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("grw224", "That didn't work!");
+                Log.e("kpb222", "That didn't work!");
             }
         });
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
     }
 
+    /*
+    populateListFromVolley will put all the message information onto the screen for the user
+     */
     private void populateListFromVolley(String response){
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         try {
-            Log.d("mbo", "RESPONSE " + response);
             JSONObject ob = new JSONObject(response);
-            Log.d("mbo", ob.toString());
-            JSONArray json=  ob.getJSONArray("mData");
+            JSONArray json =  ob.getJSONArray("mData");
             mData.clear();
             for (int i = 0; i < json.length(); ++i) {
                 int id = json.getJSONObject(i).getInt("mId");
@@ -102,11 +111,11 @@ public class MainActivity extends AppCompatActivity {
                 int dislikes = json.getJSONObject(i).getInt("mDislikes");
                 mData.add(new Datum(id, content, likes, dislikes));
             }
+            Log.d("kpb222", mData.toString());
         } catch (final JSONException e) {
-            Log.d("mfs409", "Error parsing JSON file: " + e.getMessage());
+            Log.d("kpb222", "Error parsing JSON file: " + e.getMessage());
             return;
         }
-        Log.d("mfs409", "Successfully parsed JSON file.");
         RecyclerView rv = (RecyclerView) findViewById(R.id.datum_list_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
         ItemListAdapter adapter = new ItemListAdapter(this, mData, queue);
@@ -119,51 +128,136 @@ public class MainActivity extends AppCompatActivity {
         adapter.setClickListener(new ItemListAdapter.ClickListener() {
             @Override
             public void onClick(Datum d) {
+                /*
+                This GET request is to check and see if the user has already disliked the given message.
+                If not already disliked, the PUT request for the dislike will go through like normal
+                 */
+                //TODO: change url as needed
+                String checkUrl = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/" + LoginActivity.getUserId();
+                StringRequest checkRequest = new StringRequest(Request.Method.GET, checkUrl,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                //Here, we care about the value of disliked. 1 signifies the
+                                //message has already disliked. 0 means it has not been disliked
+                                //by the current user
+                                try {
+                                    JSONObject ob = new JSONObject(response);
+                                    JSONArray json =  ob.getJSONArray("mData");
+                                    for (int i = 0; i < json.length(); ++i) {
+                                        int id = json.getJSONObject(i).getInt("mId");
+                                        int liked = json.getJSONObject(i).getInt("mLiked");
+                                        int disliked = json.getJSONObject(i).getInt("mDisliked");
+                                        messageDisliked = disliked;
+                                        int mId = json.getJSONObject(i).getInt("mMId");
+                                        int uId = json.getJSONObject(i).getInt("mUId");
+                                    }
+                                } catch (final JSONException e) {
+                                    Log.d("kpb222", "Error parsing JSON file: " + e.getMessage());
+                                    return;
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("kpb222", "Unable to get request for dislike");
+                    }
+                });
+                queue.add(checkRequest);
+                //allow for PUT request to dislike message only if it hasn't been disliked already
+                if (messageDisliked != 1) {
                     String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/dislike";
                     // Request a string response from the provided URL.
                     StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
                             new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
-                                    Log.d("mbo221disLikeCounterPUT",response);
+                                    Log.d("kpb222",response);
                                     dislikeCounter++;
                                     refresh();
                                 }
                             }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Log.e("grw224", "That didn't work!");
+                            Log.e("kpb222", "That didn't work!");
                         }
                     });
                     // Add the request to the RequestQueue.
                     queue.add(stringRequest);
                 }
+                //Reset value of messageDisliked back to -1
+                messageDisliked = -1;
+            }
         });
         adapter.setLikeClickListener(new ItemListAdapter.ClickListener() {
             @Override
             public void onClick(Datum d) {
-                String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/like";
-                // Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
+                /*
+                This GET request is to check and see if the user has already liked the given message.
+                If not already liked, the PUT request for the like will go through like normal
+                 */
+                //TODO: change url as needed
+                String checkUrl = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/" + LoginActivity.getUserId();
+                StringRequest checkRequest = new StringRequest(Request.Method.GET, checkUrl,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-                                Log.d("mbo221disLikeCounterPUT",response);
-                                likeCounter++;
-                                refresh();
+                                //Here, we care about the value of liked. 1 signifies the
+                                //message has already been liked. 0 means it has not been liked
+                                //by the current user
+                                try {
+                                    JSONObject ob = new JSONObject(response);
+                                    JSONArray json =  ob.getJSONArray("mData");
+                                    for (int i = 0; i < json.length(); ++i) {
+                                        int id = json.getJSONObject(i).getInt("mId");
+                                        int liked = json.getJSONObject(i).getInt("mLiked");
+                                        messageLiked = liked;
+                                        int disliked = json.getJSONObject(i).getInt("mDisliked");
+                                        int mId = json.getJSONObject(i).getInt("mMId");
+                                        int uId = json.getJSONObject(i).getInt("mUId");
+                                    }
+                                } catch (final JSONException e) {
+                                    Log.d("kpb222", "Error parsing JSON file: " + e.getMessage());
+                                    return;
+                                }
                             }
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e("grw224", "That didn't work!");
+                        Log.e("kpb222", "Unable to get request for like");
                     }
                 });
-                // Add the request to the RequestQueue.
-                queue.add(stringRequest);
+                queue.add(checkRequest);
+                //allow for PUT request to like message only if it hasn't been liked already
+                if (messageLiked != 1) {
+                    String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/like";
+                    // Request a string response from the provided URL.
+                    StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    Log.d("kpb222",response);
+                                    likeCounter++;
+                                    refresh();
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("kpb222", "That didn't work!");
+                        }
+                    });
+                    // Add the request to the RequestQueue.
+                    queue.add(stringRequest);
+                }
+                //Reset value of messageLiked back to -1
+                messageLiked = -1;
             }
         });
     }
 
+    /*
+    onCreateOptionsMenu will load the toolbar to the top of the screen
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -171,6 +265,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /*
+    onOptionsItemSelected will give various commands for whatever button is
+    clicked on the toolbar
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -190,10 +288,18 @@ public class MainActivity extends AppCompatActivity {
         //have to start LoginActivity class to access the GoogleSignInClient
         //so you can logout the user
         else if (id == R.id.action_logout) {
+            LoginActivity.signOut();
             startActivity(new Intent(this, LoginActivity.class));
+            return true;
         }
+        //takes you to the logged in user profile
         else if (id == R.id.action_profile) {
             startActivity(new Intent(this, ProfileActivity.class));
+            return true;
+        }
+        //takes you to a new page to make a comment
+        else if (id == R.id.action_comment_settings) {
+            startActivity(new Intent(this, CommentActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }

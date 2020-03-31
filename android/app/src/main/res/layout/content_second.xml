@@ -24,7 +24,7 @@
             android:layout_height="52dp"
             android:ems="10"
             android:inputType="textPersonName"
-            android:text=""
+            android:text="Type message here"
             tools:layout_editor_absoluteY="62dp"
             tools:layout_editor_absoluteX="0dp"
             android:layout_below="@+id/specialMessage"
