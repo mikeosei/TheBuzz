@@ -1,50 +1,36 @@
 package edu.lehigh.cse216.grw224;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Button;
-
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.util.ArrayList;
 
-import edu.lehigh.cse216.grw224.MainActivity;
-
 class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
+
     private RequestQueue queue;
 
     class ViewHolder extends RecyclerView.ViewHolder {
+
         TextView mId;
         TextView mContent;
-        TextView mNumOfLikes;
         Button mLikes;
         Button mDislikes;
-        //FloatingActionButton mAddButton;
-
-
-
+        Button mComment;
 
         ViewHolder(View itemView) {
             super(itemView);
             this.mId = (TextView) itemView.findViewById(R.id.listItemId);
             this.mContent = (TextView) itemView.findViewById(R.id.listItemContent);
-            this.mNumOfLikes = (TextView) itemView.findViewById(R.id.listNumberOfLikes);
             this.mLikes = itemView.findViewById(R.id.buttonLikes);
             this.mDislikes = itemView.findViewById(R.id.buttonDislikes);
-            //this.mAddButton =  itemView.findViewById(R.id.buttonDislikes);
-            //Log.d("mfs409", "testung bbbbbbbbbb ");
+            this.mComment = itemView.findViewById(R.id.buttonComment);
         }
+
     }
 
     private ArrayList<Datum> mData;
@@ -68,132 +54,84 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
 
         final Datum d = mData.get(position);
         holder.mId.setText(Integer.toString(d.mId));
         holder.mContent.setText(d.mContent);
         holder.mLikes.setText(Integer.toString(d.mLikes));
         holder.mDislikes.setText(Integer.toString(d.mDislikes));
+        holder.mComment.setText("Comment View");
 
-
-
+        // Attach a click listener to the view we are configuring for COMMENT
+        final View.OnClickListener commentListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View commentListener) {
+                mCommentListener.onClick(d);
+            }
+        };
+        //binds button to like listener previously created
+        holder.mComment.setOnClickListener(commentListener);
         // Attach a click listener to the view we are configuring
         final View.OnClickListener likeListener = new View.OnClickListener(){
-            int likeCounter = 0;
 
             @Override
             public void onClick(View likeListener) {
-                String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/like";
-                //Log.d("mfs409", "testung bbbbbbbbbb ");
-                // Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                likeCounter++;
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("grw224", "That didn't work!");
-                    }
-                });
-
-                // Add the request to the RequestQueue.
-                queue.add(stringRequest);
-
+                mLikeListener.onClick(d);
             }
         };
-        holder.mLikes.setOnClickListener(likeListener);
-        //holder.mId.setOnClickListener(listener);
+        //binds button to like listener previously created
 
-        //////////////////////
+        holder.mLikes.setOnClickListener(likeListener);
+
+        /*
+        creates new onclicklistener for view (dislikebutton) and when it is clicked the Main activity's  onclicklistener is triggered
+         */
         final View.OnClickListener dislikeListener = new View.OnClickListener(){
-            int dislikeCounter = 0;
 
             @Override
             public void onClick(View view) {
-
-
-                String url = "https://lilchengs.herokuapp.com/messages/" + d.mId + "/dislike";
-                //Log.d("mfs409", "testung bbbbbbbbbb ");
-                // Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                dislikeCounter++;
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("grw224", "That didn't work!");
-                    }
-                });
-
-                // Add the request to the RequestQueue.
-                queue.add(stringRequest);
-
+                mDislikeListener.onClick(d);
             }
         };
+
+        //binds button to dislikeLike listener previously created
         holder.mDislikes.setOnClickListener(dislikeListener);
-        //////////////////////
-
-
-
-        final View.OnClickListener newEntryListener = new View.OnClickListener(){
-
-
-
-            public void onClick(View view) {
-                String url = "https://lilchengs.herokuapp.com/messages/";
-                //Log.d("mfs409", "testung bbbbbbbbbb ");
-                // Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.PUT, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                               //// likeCounter++;
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("grw224", "That didn't work!");
-                    }
-                });
-
-                // Add the request to the RequestQueue.
-                queue.add(stringRequest);
-
-            }
-        };
-        //holder.mAddButton.setOnClickListener(newEntryListener);
-
-
-
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /*
+    creation of a clicklistener interface which uses a method called onClick
+    */
     interface ClickListener{
         void onClick(Datum d);
     }
-    private ClickListener mClickListener;
-    ClickListener getClickListener() {return mClickListener;}
-    void setClickListener(ClickListener c) { mClickListener = c;}
 
+    /*
+    private ClickListener is an instance of the instance
+    creation of mDislikeListener, a instance of ClickListener that will be potentially linked to the interfaces onClick method
+    SEE final View.OnClickListener
+     */
+    private ClickListener mDislikeListener;
+    ClickListener getClickListener() {return mDislikeListener;}
+    void setClickListener(ClickListener c) { mDislikeListener = c;}
+
+    /*
+    private ClickListener is an instance of the instance
+    creation of mLikeListener, a instance of ClickListener that will be potentially linked to the interfaces onClick method
+    SEE final View.OnClickListener
+     */
+    private ClickListener mLikeListener;
+    ClickListener getLikeClickListener() {return mLikeListener;}
+    void setLikeClickListener(ClickListener c) { mLikeListener = c;}
+
+    /*
+    private ClickListener is an instance of the instance
+    creation of mCommentListener, a instance of ClickListener that will be potentially linked to the interfaces onClick method
+    SEE final View.OnClickListener
+     */
+    private ClickListener mCommentListener;
+    ClickListener setCommentClickListener() {return mCommentListener;}
+    void setCommentClickListener(ClickListener c) { mCommentListener = c;}
 
 }
