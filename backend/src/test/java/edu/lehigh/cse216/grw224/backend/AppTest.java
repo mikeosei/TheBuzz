@@ -47,7 +47,7 @@ public class AppTest
 
 
     /**
-     * Test the getIntFromEnv Method
+     * Test the lehighEmailCheck Method
      */
     public void testLehighEmailCheck()
     {   

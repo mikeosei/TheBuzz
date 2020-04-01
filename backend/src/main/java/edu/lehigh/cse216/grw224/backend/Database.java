@@ -439,7 +439,7 @@ public class Database {
 			db.mInsertOne2 = db.mConnection.prepareStatement("INSERT INTO commentTable VALUES (default, ?, ?, ?)");
 			db.mSelectAll2 = db.mConnection.prepareStatement("SELECT * FROM commentTable");
 			db.mSelectOne2 = db.mConnection.prepareStatement("SELECT * from commentTable WHERE id=?");
-			db.mUpdateOne2 = db.mConnection.prepareStatement("UPDATE commentTable SET comment = ?, where id=?");
+			db.mUpdateOne2 = db.mConnection.prepareStatement("UPDATE commentTable SET comment = ? where id=?");
             //backend implemented operation
             db.mSelectMessage2= db.mConnection.prepareStatement("SELECT * from commentTable WHERE messageId=?");
 
@@ -453,7 +453,7 @@ public class Database {
 			db.mInsertOne3 = db.mConnection.prepareStatement("INSERT INTO userTable VALUES (default, ?, ?, ?, ?)");
 			db.mSelectAll3 = db.mConnection.prepareStatement("SELECT * FROM userTable");
 			db.mSelectOne3 = db.mConnection.prepareStatement("SELECT * from userTable WHERE id=?");
-            db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET email = ?, where id=?");
+            db.mUpdateOne3 = db.mConnection.prepareStatement("UPDATE userTable SET email = ? where id=?");
             db.getId = db.mConnection.prepareStatement("SELECT id from userTable WHERE userId=?");
 
 
@@ -464,11 +464,11 @@ public class Database {
 
 			// Standard CRUD operations
 			db.mDeleteOne4 = db.mConnection.prepareStatement("DELETE FROM likeTable WHERE id = ?");
-			db.mInsertOne4 = db.mConnection.prepareStatement("INSERT INTO likeTable VALUES (default, 0, 0, ?, ?)");
+			db.mInsertOne4 = db.mConnection.prepareStatement("INSERT INTO likeTable VALUES (default, -1, -1, ?, ?)");
 			db.mSelectAll4 = db.mConnection.prepareStatement("SELECT * FROM likeTable");
 			db.mSelectOne4 = db.mConnection.prepareStatement("SELECT * from likeTable WHERE id=?");
 			db.mUpdateOne4 = db.mConnection.prepareStatement("UPDATE likeTable SET liked = ?, disliked = ? where id=?");
-			db.getLikeId = db.mConnection.prepareStatement("SELECT id from likeTable WHERE userId=?");
+			db.getLikeId = db.mConnection.prepareStatement("SELECT id from likeTable WHERE userId=? AND messageId=?");
 
 
 		} catch (SQLException e) {
@@ -626,8 +626,8 @@ public class Database {
 		// votes[(dVotes>>31)&1]=Math.abs(dVotes);//assigns negatives to downvotes and positives to upvotes(other will be 0)
 		try {
 			mUpdateOne.setString(1, message);
-			mUpdateOne.setInt(2, votes[0]);//# of upvotes to add
-			mUpdateOne.setInt(3, votes[1]);//# of downvotes to add
+			mUpdateOne.setInt(2, like);//# of upvotes to add
+			mUpdateOne.setInt(3, dislike);//# of downvotes to add
 			mUpdateOne.setInt(4, id);
 
 			res = mUpdateOne.executeUpdate();
@@ -971,11 +971,11 @@ public class Database {
 	 * 
 	 * @return The number of rows that were inserted
 	 */
-	int insertRow4(int messageId, int userId) {
+	int insertRow4(int messageId, int id) {
 		int count = 0;
 		try {
 			mInsertOne4.setInt(1, messageId);
-			mInsertOne4.setInt(2, userId);
+			mInsertOne4.setInt(2, id);
 			count += mInsertOne4.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1061,7 +1061,7 @@ public class Database {
 				
 				mUpdateOne4.setInt(1, 0);
 				mUpdateOne4.setInt(2, 1);
-				mUpdateOne4.setInt(3, getLikeId(id));
+				mUpdateOne4.setInt(3, id);
 				System.out.print("THIS IS THE USER'S FIRST LIKE/DIS");
 
 			}
@@ -1070,7 +1070,7 @@ public class Database {
 				
 				mUpdateOne4.setInt(1, 1);
 				mUpdateOne4.setInt(2, 0);
-				mUpdateOne4.setInt(3, getLikeId(id));
+				mUpdateOne4.setInt(3, id);
 				System.out.print("THIS IS THE USER'S FIRST LIKE/DIS");
 
 			}
@@ -1081,11 +1081,12 @@ public class Database {
 		return res;
 	}
 	
-	int getLikeId(int userId) {
+	int getLikeId(int userId, int messageId) {
 		int res = -1;
 		
 		try {
 			getLikeId.setInt(1, userId);
+			getLikeId.setInt(2, messageId);
             ResultSet rs = getLikeId.executeQuery();
             if (rs.next()) {
                 res = rs.getInt("id");
@@ -1098,16 +1099,22 @@ public class Database {
     }
     
 
-
-	int secureVoting(int messageId, int liked, int userId) {
+/**
+ * 
+ * @param messageId message we are changing to reflect current likes
+ * @param liked like or dislike
+ * @param likeId row id in like table
+ * @return
+ */
+	int secureVoting(int messageId, int liked, int likeId) {
 		int res = -1;
 		int up = 0;
 		int down = 0;
 		try {
-			int likeId = getLikeId(userId);
-			Database.MessageRow messageRow = selectOne(messageId);
+			Database.LikesRow likeRow = selectOne4(likeId);
+
 			//dislike followed by like
-			if(messageRow.dislikes==0 && liked==1){
+			if(likeRow.disliked==0 && liked==1){
 				System.out.print("THIS IS SHOULD BE DISLIKE FOLLOWED BY LIKE");
 
 				up = 1;
@@ -1115,7 +1122,7 @@ public class Database {
 				updateOne4(likeId,liked);
 			}
 			//dislike followed by dislike
-			if(messageRow.dislikes==0 && liked==0){
+			if(likeRow.disliked==0 && liked==0){
 				System.out.print("THIS IS SHOULD BE DISLIKE FOLLOWED BY DISLIKE");
 
 				up = 0;
@@ -1123,7 +1130,7 @@ public class Database {
 				deleteRow4(likeId);
 			}
 			//like followed by like
-			if(messageRow.likes==1 && liked==1){
+			if(likeRow.liked==1 && liked==1){
 				System.out.print("THIS IS SHOULD BE LIKE FOLLOWED BY LIKE");
 
 				up = -1;
@@ -1132,7 +1139,7 @@ public class Database {
 
 			}
 			//like followed by dislike
-			if(messageRow.likes==1 && liked==0){
+			if(likeRow.liked==1 && liked==0){
 				System.out.print("THIS IS SHOULD BE DISLIKE FOLLOWED BY LIKE");
 
 				up = -1;

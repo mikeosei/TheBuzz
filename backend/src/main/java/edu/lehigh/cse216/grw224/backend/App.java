@@ -135,11 +135,9 @@ public class App {
         String me = "me";
         table.put(bypass, me);
         /*
-        int counter = 0;
-        if (counter == 0) {
-            database.insertRow3("by", "pass", "bypass@lehigh.edu", "bypass");
-            counter = counter + 1;
-        }*/
+         * int counter = 0; if (counter == 0) { database.insertRow3("by", "pass",
+         * "bypass@lehigh.edu", "bypass"); counter = counter + 1; }
+         */
 
         // userId and sessionId are created by /login and are passed back and forth
         // between
@@ -292,7 +290,6 @@ public class App {
             // If we can't get an ID or can't parse the JSON, Spark will send
             // a status 500
             int idx = Integer.parseInt(request.params("id"));
-            SimpleRequest req = gson.fromJson(request.body(), SimpleRequest.class);
             // ensure status 200 OK, with a MIME type of JSON
             response.status(200);
             response.type("application/json");
@@ -301,50 +298,52 @@ public class App {
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
             int secure;
-            // checks to see if session of a given client exists in hashtable
-            // if statement - takes the userId of the client and checks the hashtable
-            // to see if the specific client is has an existing sessionId.
-            // else- indicates that sessionId is for a different client instead of current
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - like a message that the user has not currently liked or dislike
+            // else - update message like to reflect status
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
                         new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
             } else if (table.get(userId).equals(sessionId)) {
-                //check to see if user attempting like has neither liked or disliked prior
-                int uId = database.get_Id(userId);
-                Database.LikesRow likesRow = database.selectOne4(uId);
+                // get database id of userId
 
+                int uId = database.get_Id(userId);
                 Database.MessageRow data = database.selectOne(idx);
                 int messageId = database.get_Message_Id(data.message);
-                if (likesRow != null){
-                    
-                    //updates like in the message table                
-                    int insertResult = database.updateOne(messageId, data.message,1,0);
-                    //inserts a row with like like=0,dislike=0
-                    database.insertRow4(messageId, uId);
-                    //updates like table to reflect the like
-                    int updateResult = database.updateOne4(uId,1);
+                int likeId = database.getLikeId(uId,messageId);
+                Database.LikesRow likesRow = database.selectOne4(likeId);
+                if (likesRow == null) {
 
-                    if (insertResult == -1){
-                        return gson
-                            .toJson(new StructuredResponse("error", "An error occured with an inserion into the messageTable", null));
+                    // updates like in the message table
+                    int insertResult = database.updateOne(messageId, data.message, 1, 0);
+                    // inserts a row in like table with like=0,dislike=0
+                    database.insertRow4(messageId, uId);
+                    //likeId of new like row
+                    likeId = database.getLikeId(uId,messageId);
+                    // updates the like table newly created default row to reflect the like we just made
+                    int updateResult = database.updateOne4(likeId, 1);
+
+                    if (insertResult == -1) {
+                        return gson.toJson(new StructuredResponse("error",
+                                "An error occured with an INSERTION into the messageTable", null));
                     }
-                    if (updateResult == -1){
-                        return gson
-                            .toJson(new StructuredResponse("error", "A error occured with an update to the likeTable", null));
+                    if (updateResult == -1) {
+                        return gson.toJson(new StructuredResponse("error",
+                                "A error occured with an UPDATE to the likeTable", null));
                     }
-                    return gson
-                            .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
-                }else {
-                    secure =database.secureVoting(messageId,1,uId);
-                    //database.insertOne4(messageId, uId);
+                    return gson.toJson(new StructuredResponse("ok",
+                            "like has been updated in both messageTable and likeTable", null));
+                } else {
+                    secure = database.secureVoting(messageId, 1, likeId);
                 }
-                
+
                 if (secure == -1) {
                     return gson
                             .toJson(new StructuredResponse("error", "Could not PUT unable to update row " + idx, null));
                 } else {
-                    return gson.toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
+                    return gson
+                            .toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
                 }
 
             } else {
@@ -369,50 +368,51 @@ public class App {
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
             int secure;
-            // checks to see if session of a given client exists in hashtable
-            // if statement - takes the userId of the client and checks the hashtable
-            // to see if the specific client is has an existing sessionId.
-            // else- indicates that sessionId is for a different client instead of current
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - like a message that the user has not currently liked or dislike &
+            // update message's like to reflect status
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
                         new StructuredResponse("error", "userId & sessionId are null:   client has not login", null));
             } else if (table.get(userId).equals(sessionId)) {
-                //check to see if user attempting like has neither liked or disliked prior
+                // get database id of userId
                 int uId = database.get_Id(userId);
-                Database.LikesRow likesRow = database.selectOne4(uId);
-
                 Database.MessageRow data = database.selectOne(idx);
                 int messageId = database.get_Message_Id(data.message);
-                if (likesRow == null){
-                    
-                    //updates like in the message table                
-                    int insertResult = database.updateOne(messageId, data.message,0,1);
-                    //inserts a row with like like=0,dislike=0
+                int likeId = database.getLikeId(uId,messageId);
+                Database.LikesRow likesRow = database.selectOne4(likeId);
+                if (likesRow == null) {
+                    // updates dislike in the message table
+                    int insertResult = database.updateOne(messageId, data.message, 0, 1);
+                    // inserts a row in like table with like like=0,dislike=0
                     database.insertRow4(messageId, uId);
-                    //updates like table to reflect the like
-                    int updateResult = database.updateOne4(uId,0);
+                    //likeId of new like row
+                    likeId = database.getLikeId(uId,messageId);
+                    // updates the like table newly created default row to reflect the dislike
+                    int updateResult = database.updateOne4(likeId, 0);
 
-                    if (insertResult == -1){
-                        return gson
-                            .toJson(new StructuredResponse("error", "An error occured with an inserion into the messageTable", null));
+                    if (insertResult == -1) {
+                        return gson.toJson(new StructuredResponse("error",
+                                "An error occured with an inserion into the messageTable", null));
                     }
-                    if (updateResult == -1){
-                        return gson
-                            .toJson(new StructuredResponse("error", "A error occured with an update to the likeTable", null));
+                    if (updateResult == -1) {
+                        return gson.toJson(new StructuredResponse("error",
+                                "A error occured with an update to the likeTable", null));
                     }
-                    return gson
-                            .toJson(new StructuredResponse("ok", "like has been updated in both messageTable and likeTable", null));
-                }else {
-                    secure =database.secureVoting(messageId,0,uId);
-                    //database.insertOne4(messageId, uId);
+                    return gson.toJson(new StructuredResponse("ok",
+                            "like has been updated in both messageTable and likeTable", null));
+                } else {
+                    secure = database.secureVoting(messageId, 0, likeId);
                 }
-                
+
                 if (secure == -1) {
                     return gson
                             .toJson(new StructuredResponse("error", "Could not PUT unable to update row " + idx, null));
                 } else {
-                    return gson.toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
+                    return gson
+                            .toJson(new StructuredResponse("ok", "Successful PUT changes have been made     ", secure));
                 }
 
             } else {
@@ -435,10 +435,9 @@ public class App {
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
 
-            // checks to see if session of a given client exists in hashtable
-            // if statement - takes the userId of the client and checks the hashtable
-            // to see if the specific client is has an existing sessionId.
-            // else- indicates that sessionId is for a different client instead of current
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - deletion of message
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
@@ -464,6 +463,7 @@ public class App {
 
         });
 
+        // login route
         Spark.post("/login", (request, response) -> {
             // NB: if gson.Json fails, Spark will reply with status 500 Internal
             // Server Error
@@ -473,13 +473,7 @@ public class App {
             // describes the error.
             response.status(200);
             response.type("application/json");
-
-            /*
-             * String transport = "https://accounts.google.com/o/oauth2/auth?redirect_u" +
-             * "ri=https%3A%2F%2Fserene-gorge-86582.herokuapp.com&response_type=code&client_id="
-             * + CLIENT_ID+"&scope=https%3A%2F%2Fmail.google.com%2F&approval_prompt=force";
-             */
-
+            // random number representing sessionID
             Random rand = new Random();
 
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
@@ -508,10 +502,8 @@ public class App {
                 String familyName = (String) payload.get("family_name");
                 String givenName = (String) payload.get("given_name");
 
-                // Use or store profile information
-                // possible syntax for adding to database: boolean result =
-                // dataStore.storeEmail(email);
-
+                // if - verifies lehigh email
+                // else - not lehigh email
                 if (lehighEmailCheck(email)) {
                     if (!table.containsKey(userId)) {
                         // generate random number between 1 and 10000 for sessionId
@@ -521,7 +513,7 @@ public class App {
                         // send userId and sessionId for current client to front end
                         response.header("userId", userId);
                         response.header("sessionId", sessionId.toString());
-                        //////////////////////// database//////////////////
+
                         database.insertRow3(name, familyName, email, userId);
 
                         return gson.toJson(new StructuredResponse("ok",
@@ -546,6 +538,7 @@ public class App {
 
         });
 
+        // route to create a comment
         Spark.post("/comment/:id", (request, response) -> {
             // If we can't get an ID,
             // Spark will send a status 500
@@ -562,6 +555,9 @@ public class App {
             String sessionId = request.headers("sessionId");
             int id = database.get_Id(userId);
 
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - create comment
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
@@ -583,6 +579,7 @@ public class App {
 
         });
 
+        // route to get all comment for a specific messageID
         Spark.get("/comment/:id", (request, response) -> {
             // If we can't get an ID,Spark will send a status 500
             int idx = Integer.parseInt(request.params("id"));
@@ -597,6 +594,9 @@ public class App {
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
 
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - retrieve all comment
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
@@ -613,6 +613,7 @@ public class App {
 
         });
 
+        // route to edit comment
         Spark.put("/comment/:id/:cid", (request, response) -> { // If we can't get an ID, Spark will send a status500
             int idx = Integer.parseInt(request.params("id"));
             int cidx = Integer.parseInt(request.params("cid")); // ensure status 200OK, with a MIME type of JSON
@@ -628,6 +629,9 @@ public class App {
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
 
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - edit comment
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
@@ -643,6 +647,7 @@ public class App {
             }
         });
 
+        // route to get profile information
         Spark.get("/profile", (request, response) -> {
             // If we can't get an ID,Spark will send a status 500
             // ensure status 200 OK, with a MIMEtype of JSON
@@ -655,6 +660,10 @@ public class App {
             // retrieve userId & sessionId of current client
             String userId = request.headers("userId");
             String sessionId = request.headers("sessionId");
+
+            // if - checks to see if session of a given client exists in hashtable
+            // else if - retreive profile information
+            // else - session expire
             if (!table.containsKey(userId)) {
                 response.redirect("/index.html");
                 return gson.toJson(
