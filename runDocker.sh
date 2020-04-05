@@ -1,7 +1,0 @@
-#!/bin/bash -e
-IP=127.0.0.1
-PORT=5432
-USER=csr221
-PASS=cse216group
-mvn package
-POSTGRES_IP=$IP POSTGRES_PORT=$PORT POSTGRES_USER=$USER POSTGRES_PASS=$PASS mvn exec:java
