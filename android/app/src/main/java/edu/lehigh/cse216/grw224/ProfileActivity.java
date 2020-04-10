@@ -118,10 +118,6 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
             return true;
         }
-        //click for user to make a comment
-        else if (id == R.id.action_comment_settings) {
-            startActivity(new Intent(this, CommentActivity.class));
-        }
         return super.onOptionsItemSelected(item);
     }
 

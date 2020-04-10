@@ -13,12 +13,7 @@
         android:title="View Profile"
         />
     <item
-        android:id="@+id/action_comment_settings"
-        android:orderInCategory="3"
-        android:title="Add a Comment"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_logout"
-        android:orderInCategory="4"
+        android:orderInCategory="3"
         android:title="Logout" />
 </menu>

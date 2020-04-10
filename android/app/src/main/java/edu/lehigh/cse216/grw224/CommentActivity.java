@@ -18,6 +18,8 @@ import org.json.JSONObject;
 
 public class CommentActivity extends AppCompatActivity{
 
+    int messageId;
+
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -28,9 +30,10 @@ public class CommentActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
+        messageId = getIntent().getIntExtra("MESSAGE_ID",0);
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         // The OK button gets the text from this editText box and return it to the calling activity
-        final EditText edit = (EditText) findViewById(R.id.editText);
+        final EditText edit = (EditText) findViewById(R.id.messageText);
         Button bOk = (Button) findViewById(R.id.buttonOk);
         bOk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -45,7 +48,7 @@ public class CommentActivity extends AppCompatActivity{
                 }
                 //TODO: edit url as necessary by getting message id for comment
                 //TODO: need to figure out how to attach the comment to the correct message
-                String url = "https://lilchengs.herokuapp.com/messages";
+                String url = "https://lilchengs.herokuapp.com/messages/" + messageId;
                 final JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, messageData,
                         new Response.Listener<JSONObject>() {
                             /*

@@ -22,6 +22,7 @@ import android.view.View;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+//import android.support.v7.app.AppCompatViewInflater;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -59,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("585478383264-j9obqp66iqsied7br8n9c1a17b8l6ptd.apps.googleusercontent.com")
+                .requestIdToken("721614654195-cofg349cqbl2q6kajjojhiuvpqc51gp4.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.

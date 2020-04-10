@@ -40,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
     int messageDisliked = -1;
     int messageLiked = -1;
 
+    ItemListAdapter adapter;
+    RecyclerView rv;
+    LinearLayoutManager manager;
+
+
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -55,6 +60,13 @@ public class MainActivity extends AppCompatActivity {
         // Instantiate the RequestQueue.
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
         String url = "https://lilchengs.herokuapp.com/messages";
+
+        adapter = new ItemListAdapter(this, mData);
+        manager = new LinearLayoutManager(this);
+        rv = (RecyclerView) findViewById(R.id.datum_list_view);
+        rv.setLayoutManager(manager);
+        rv.setAdapter(adapter);
+
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
@@ -105,10 +117,10 @@ public class MainActivity extends AppCompatActivity {
             JSONArray json =  ob.getJSONArray("mData");
             mData.clear();
             for (int i = 0; i < json.length(); ++i) {
-                int id = json.getJSONObject(i).getInt("mId");
-                String content = json.getJSONObject(i).getString("mContent");
-                int likes = json.getJSONObject(i).getInt("mLikes");
-                int dislikes = json.getJSONObject(i).getInt("mDislikes");
+                int id = json.getJSONObject(i).getInt("id");
+                String content = json.getJSONObject(i).getString("message");
+                int likes = json.getJSONObject(i).getInt("likes");
+                int dislikes = json.getJSONObject(i).getInt("dislikes");
                 mData.add(new Datum(id, content, likes, dislikes));
             }
             Log.d("kpb222", mData.toString());
@@ -116,10 +128,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d("kpb222", "Error parsing JSON file: " + e.getMessage());
             return;
         }
+
+        /*ItemListAdapter adapter = new ItemListAdapter(this, mData);
         RecyclerView rv = (RecyclerView) findViewById(R.id.datum_list_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        ItemListAdapter adapter = new ItemListAdapter(this, mData, queue);
-        rv.setAdapter(adapter);
+        rv.setAdapter(adapter);*/
+        adapter.notifyDataSetChanged();
         /*
         creates new click listener
         setClickListener() is a method of ItemListAdapter that specifically connects
@@ -253,6 +267,15 @@ public class MainActivity extends AppCompatActivity {
                 messageLiked = -1;
             }
         });
+        adapter.setCommentClickListener(new ItemListAdapter.ClickListener() {
+            @Override
+            public void onClick(Datum d) {
+                Intent commentIntent = new Intent(getBaseContext(), CommentViewActivity.class);
+                commentIntent.putExtra("MESSAGE_ID",d.mId);
+                startActivity(commentIntent);
+                setContentView(R.layout.activity_comment_view);
+            }
+        });
     }
 
     /*
@@ -296,10 +319,6 @@ public class MainActivity extends AppCompatActivity {
         else if (id == R.id.action_profile) {
             startActivity(new Intent(this, ProfileActivity.class));
             return true;
-        }
-        //takes you to a new page to make a comment
-        else if (id == R.id.action_comment_settings) {
-            startActivity(new Intent(this, CommentActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
