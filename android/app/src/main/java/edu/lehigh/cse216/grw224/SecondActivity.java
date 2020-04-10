@@ -18,6 +18,10 @@ import org.json.JSONObject;
 
 public class SecondActivity extends AppCompatActivity {
 
+    int userId;
+    String sessionId;
+
+
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -28,6 +32,8 @@ public class SecondActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
+        userId = getIntent().getIntExtra("userId",0);
+        sessionId = getIntent().getStringExtra("sessionId");
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         // The OK button gets the text from the input box and returns it to the calling activity
         final EditText et = (EditText) findViewById(R.id.editText);
@@ -37,6 +43,8 @@ public class SecondActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (!et.getText().toString().equals("") ) {
                     Intent i = new Intent();
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
                     final JSONObject messageData = new JSONObject();
                     try {
                         messageData.put("mMessage", et.getText().toString());
@@ -65,6 +73,8 @@ public class SecondActivity extends AppCompatActivity {
                                         //so you can refresh the view
                                         if (backendResponse.equals("ok")){
                                             Intent i = new Intent();
+                                            i.putExtra("userId",userId);
+                                            i.putExtra("sessionId",sessionId);
                                             i.putExtra("result", et.getText().toString());
                                             setResult(Activity.RESULT_OK, i);
                                             finish();

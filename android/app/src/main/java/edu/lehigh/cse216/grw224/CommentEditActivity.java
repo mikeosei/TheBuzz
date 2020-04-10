@@ -18,6 +18,9 @@ import org.json.JSONObject;
 
 public class CommentEditActivity extends AppCompatActivity {
 
+    int userId;
+    String sessionId;
+
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -31,6 +34,8 @@ public class CommentEditActivity extends AppCompatActivity {
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         final EditText et = (EditText) findViewById(R.id.messageText);
         Intent mIntent = getIntent();
+        userId = mIntent.getIntExtra("userId",0);
+        sessionId = mIntent.getStringExtra("sessionId");
         //Obtaining the comment so that it is already entered in the text box and you don't have to start from scratch
         String commentData = mIntent.getStringExtra("commentData");
         et.append(commentData);
@@ -40,6 +45,8 @@ public class CommentEditActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (!et.getText().toString().equals("")) {
                     Intent i = new Intent();
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
                     final JSONObject messageData = new JSONObject();
                     try {
                         messageData.put("mMessage", et.getText().toString());
@@ -61,6 +68,8 @@ public class CommentEditActivity extends AppCompatActivity {
                                         String backendResponse = response.getString("mStatus");
                                         if (backendResponse.equals("ok")){
                                             Intent i = new Intent();
+                                            i.putExtra("userId",userId);
+                                            i.putExtra("sessionId",sessionId);
                                             i.putExtra("result", et.getText().toString());
                                             setResult(Activity.RESULT_OK, i);
                                             finish();

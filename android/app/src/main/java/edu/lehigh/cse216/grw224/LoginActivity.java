@@ -110,8 +110,15 @@ public class LoginActivity extends AppCompatActivity {
             String token = account.getIdToken();
             RequestQueue queue = VolleySingleton.getRequestQueue(this);
             Intent i = new Intent();
-            String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
-            JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, null,
+            //String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
+            String url = "https://lilchengs.herokuapp.com/login";
+            final JSONObject loginData = new JSONObject();
+            try {
+                loginData.put("access_token", token);
+            }catch(final JSONException e){
+                Log.d("mfs409", "Error adding mId/mContent JSON file: " + e.getMessage());
+            }
+            JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, loginData,
                     new Response.Listener<JSONObject>() {
                         /*
                         @param response represents status message that backend will return if the status is ok then we proceed
@@ -125,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
                                 for (int i = 0; i < json.length(); ++i) {
                                     sessionId = json.getJSONObject(i).getString("sessionId");
                                     userId = json.getJSONObject(i).getInt("userId");
-                                    Log.d("kpb222", "" + sessionId + " " + userId);
+                                    Log.e("kpb222", "" + sessionId + " " + userId);
                                     updateUI();
                                 }
                             } catch (final JSONException e) {
@@ -162,7 +169,10 @@ public class LoginActivity extends AppCompatActivity {
     @param account  the account of the user that has logged in
      */
     public void updateUI() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent updateIntent = new Intent(this, MainActivity.class);
+        updateIntent.putExtra("userId", userId);
+        updateIntent.putExtra("sessionId",sessionId);
+        startActivity(updateIntent);
         setContentView(R.layout.activity_main);
     }
 

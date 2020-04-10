@@ -44,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rv;
     LinearLayoutManager manager;
 
+    int userId;
+    String sessionId;
+
 
     /*
     onCreate is where you initialize your activity
@@ -54,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        userId = getIntent().getIntExtra("userId",0);
+        sessionId = getIntent().getStringExtra("sessionId");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -272,6 +277,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(Datum d) {
                 Intent commentIntent = new Intent(getBaseContext(), CommentViewActivity.class);
                 commentIntent.putExtra("MESSAGE_ID",d.mId);
+                commentIntent.putExtra("userId",userId);
+                commentIntent.putExtra("sessionId",sessionId);
                 startActivity(commentIntent);
                 setContentView(R.layout.activity_comment_view);
             }
@@ -305,6 +312,8 @@ public class MainActivity extends AppCompatActivity {
             String newMessage;
             JSONObject ob= new JSONObject();
             Intent i = new Intent(getApplicationContext(), SecondActivity.class);
+            i.putExtra("userId",userId);
+            i.putExtra("sessionId",sessionId);
             startActivityForResult(i, 789); // 789 is the number that will come back to us
             return true;
         }
@@ -317,7 +326,10 @@ public class MainActivity extends AppCompatActivity {
         }
         //takes you to the logged in user profile
         else if (id == R.id.action_profile) {
-            startActivity(new Intent(this, ProfileActivity.class));
+            Intent profileIntent = new Intent(this, ProfileActivity.class);
+            profileIntent.putExtra("userId",userId);
+            profileIntent.putExtra("sessionId",sessionId);
+            startActivity(profileIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);

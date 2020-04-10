@@ -24,6 +24,8 @@ public class CommentViewActivity extends AppCompatActivity{
 
     ArrayList<CommentsDatum> mDataComments = new ArrayList<>();
     int messageId;
+    int userId;
+    String sessionId;
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -39,7 +41,9 @@ public class CommentViewActivity extends AppCompatActivity{
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         //TODO: change url as necessary
         messageId = getIntent().getIntExtra("MESSAGE_ID",0);
-        String url = "https://lilchengs.herokuapp.com/messages/" + messageId;
+        userId = getIntent().getIntExtra("userId",0);
+        sessionId = getIntent().getStringExtra("sessionId");
+        String url = "https://lilchengs.herokuapp.com/comment/" + 29;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -91,6 +95,8 @@ public class CommentViewActivity extends AppCompatActivity{
             @Override
             public void onClick(CommentsDatum d) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                i.putExtra("userId",userId);
+                i.putExtra("sessionId",sessionId);
                 startActivityForResult(i, 789);
             }
         });
@@ -106,11 +112,17 @@ public class CommentViewActivity extends AppCompatActivity{
                 //If the user is trying to edit their own comment, this if statement is followed
                 if(d.uId == LoginActivity.getUserId()){
                     Intent i = new Intent(getApplicationContext(), CommentEditActivity.class);
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
+                    startActivityForResult(i, 789);
                 }
                 //If the comment is not the user's own, they will view the user's profile that made the comment
                 else{
                     Intent i = new Intent(getApplicationContext(), ProfileActivity.class);
                     i.putExtra("userId", d.uId);
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
+                    startActivityForResult(i, 789);
                 }
             }
         });
@@ -145,6 +157,8 @@ public class CommentViewActivity extends AppCompatActivity{
             JSONObject ob= new JSONObject();
             Intent i = new Intent(getApplicationContext(), CommentActivity.class);
             i.putExtra("MESSAGE_ID", messageId);
+            i.putExtra("userId",userId);
+            i.putExtra("sessionId",sessionId);
             startActivityForResult(i, 789); // 789 is the number that will come back to us
             return true;
         }
@@ -157,12 +171,18 @@ public class CommentViewActivity extends AppCompatActivity{
         }
         //takes you to the logged in user profile
         else if (id == R.id.action_profile) {
-            startActivity(new Intent(this, ProfileActivity.class));
+            Intent profileIntent = new Intent(this, ProfileActivity.class);
+            profileIntent.putExtra("userId",userId);
+            profileIntent.putExtra("sessionId",sessionId);
+            startActivity(profileIntent);
             return true;
         }
         //takes you to the home page
         else if (id == R.id.action_home) {
-            startActivity(new Intent(this, MainActivity.class));
+            Intent homeIntent = new Intent(this, ProfileActivity.class);
+            homeIntent.putExtra("userId",userId);
+            homeIntent.putExtra("sessionId",sessionId);
+            startActivity(homeIntent);
         }
         return super.onOptionsItemSelected(item);
     }

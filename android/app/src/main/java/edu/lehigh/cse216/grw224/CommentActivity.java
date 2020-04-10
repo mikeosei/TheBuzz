@@ -48,7 +48,7 @@ public class CommentActivity extends AppCompatActivity{
                 }
                 //TODO: edit url as necessary by getting message id for comment
                 //TODO: need to figure out how to attach the comment to the correct message
-                String url = "https://lilchengs.herokuapp.com/messages/" + messageId;
+                String url = "https://lilchengs.herokuapp.com/comment/" + messageId;
                 final JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, messageData,
                         new Response.Listener<JSONObject>() {
                             /*
