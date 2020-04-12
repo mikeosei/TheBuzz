@@ -55,7 +55,7 @@ public class App {
     // Collections.singletonList(DriveScopes.DRIVE);
 
     // Total number of tables
-    private static final int NUM_TABLES = 4;
+    private static final int NUM_TABLES = 5;
 
     /**
      * Print the menu for our program
@@ -213,10 +213,6 @@ public class App {
         // Current table (0 = messsageTable, 1 = CommentRow)
         int currentTable = 0;
         
-       
-         
-
-        
         Database db = Database.getDatabase(db_url); // pass the DB url
         // Start our basic command-line interpreter:
         if (db == null)
@@ -229,7 +225,6 @@ public class App {
             // function call
             // help
             char action = prompt(in);
-            char press = prompt(in);
             if (action == '?') {
                 menu();
             } else if (action == 'q') {
@@ -458,7 +453,6 @@ public class App {
                     int fileSize = getInt(in, "Enter the file size");
                     String accessDate = getString(in, "Enter the access date");
 
-                    
                     int res = db.insertRow5(userId, messageId, fileName, fileSize, accessDate);
                     System.out.println(res + " rows added");
                 }

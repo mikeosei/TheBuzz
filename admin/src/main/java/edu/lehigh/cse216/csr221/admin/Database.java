@@ -522,7 +522,7 @@ public class Database {
 
 			// Statements for like/dislike table (likeTable)
 			db.mCreateTable5 = db.mConnection.prepareStatement(
-					"CREATE TABLE driveTable (id SERIAL PRIMARY KEY, userId INTEGER NOT NULL, messageId INTEGER NOT NULL, fileName VARCHAR(500) NOT NULL, fileSize INTEGER(500) NOT NULL,accessDate VARCHAR(500) NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
+					"CREATE TABLE driveTable (id SERIAL PRIMARY KEY, userId INTEGER NOT NULL, messageId INTEGER NOT NULL, fileName VARCHAR(500) NOT NULL, fileSize INTEGER NOT NULL,accessDate VARCHAR(500) NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
 			db.mDropTable5 = db.mConnection.prepareStatement("DROP TABLE driveTable");
 
 			// Standard CRUD operations
