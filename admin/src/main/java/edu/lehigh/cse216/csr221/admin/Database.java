@@ -161,6 +161,42 @@ public class Database {
 	 */
 	private PreparedStatement mDropTable4;
 
+
+		/**
+	 * A prepared statement for getting all data in the user database
+	 */
+	private PreparedStatement mSelectAll5;
+
+	/**
+	 * A prepared statement for getting one row from the user database
+	 */
+	private PreparedStatement mSelectOne5;
+
+	/**
+	 * A prepared statement for deleting a row from the user database
+	 */
+	private PreparedStatement mDeleteOne5;
+
+	/**
+	 * A prepared statement for inserting into the user database
+	 */
+	private PreparedStatement mInsertOne5;
+
+	/**
+	 * A prepared statement for updating a single row in the user database
+	 */
+	private PreparedStatement mUpdateOne5;
+
+	/**
+	 * A prepared statement for creating the table in our user database
+	 */
+	private PreparedStatement mCreateTable5;
+
+	/**
+	 * A prepared statement for dropping the table in our user database
+	 */
+	private PreparedStatement mDropTable5;
+
 	/**
 	 * MessageRow is like a struct in C: we use it to hold data, and we allow 
 	 * direct access to its fields.  In the context of this Database, MessageRow 
@@ -314,6 +350,48 @@ public class Database {
 			this.messageId = messageId;
 		}
 	}
+		/**
+	 * DriveRow is the row data for users
+	 */
+	public static class DriveRow {
+		/**
+		 * The ID of this row of the database
+		 */
+		int id;
+		/**
+		 * User posting file
+		 */
+		int userId;
+		/**
+		 * Message file belongs to
+		 */
+		int messageId;
+		/**
+		 * Name of file
+		 */
+		String fileName;
+		/**
+		 * size of file
+		 */
+		int fileSize;
+		/**
+		 * Date file was created
+		 */
+		String accessDate;
+
+		/**
+		 * Construct a DriveRow object by providing values for its fields
+		 */
+		public DriveRow(int id, int userId, int messageId, String fileName, int fileSize,String accessDate) {
+			this.id = id;
+			this.userId = userId;
+			this.messageId = messageId;
+			this.fileName = fileName;
+			this.fileSize = fileSize;
+			this.accessDate = accessDate;
+		}
+	
+	}
 
 	/**
 	 * The Database constructor is private: we only create Database objects 
@@ -351,8 +429,8 @@ public class Database {
 			System.err.println("Error: DriverManager.getConnection() threw a SQLException");
 			e.printStackTrace();
 			return null;
-		}
-		*/
+		}*/
+		
 		// Give the Database object a connection, fail if we cannot get one
 		try {
 		Class.forName("org.postgresql.Driver");
@@ -441,6 +519,18 @@ public class Database {
 			db.mSelectAll4 = db.mConnection.prepareStatement("SELECT * FROM likeTable");
 			db.mSelectOne4 = db.mConnection.prepareStatement("SELECT * from likeTable WHERE id=?");
 			db.mUpdateOne4 = db.mConnection.prepareStatement("UPDATE likeTable SET liked = ?, disliked = ?, where id=?");
+
+			// Statements for like/dislike table (likeTable)
+			db.mCreateTable5 = db.mConnection.prepareStatement(
+					"CREATE TABLE driveTable (id SERIAL PRIMARY KEY, userId INTEGER NOT NULL, messageId INTEGER NOT NULL, fileName VARCHAR(500) NOT NULL, fileSize INTEGER(500) NOT NULL,accessDate VARCHAR(500) NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
+			db.mDropTable5 = db.mConnection.prepareStatement("DROP TABLE driveTable");
+
+			// Standard CRUD operations
+			db.mDeleteOne5 = db.mConnection.prepareStatement("DELETE FROM driveTable WHERE id = ?");
+			db.mInsertOne5 = db.mConnection.prepareStatement("INSERT INTO driveTable VALUES (default, ?, ?, ?, ?, ?)");
+			db.mSelectAll5 = db.mConnection.prepareStatement("SELECT * FROM driveTable");
+			db.mSelectOne5 = db.mConnection.prepareStatement("SELECT * from driveTable WHERE id=?");
+			db.mUpdateOne5 = db.mConnection.prepareStatement("UPDATE driveTable SET accessDate = ?, where id=?");
 
 		} catch (SQLException e) {
 			System.err.println("Error creating prepared statement");
@@ -603,6 +693,7 @@ public class Database {
 			e.printStackTrace();
 		}
 	}
+	
 
 	// Commands for Comment Table
 	/**
@@ -991,5 +1082,133 @@ public class Database {
 			e.printStackTrace();
 		}
 		return res;
+	}
+
+	/**
+	 * Insert a row into the database
+	 * 
+	 * @param subject The subject for this new row
+	 * @param message The message body for this new row
+	 * 
+	 * @return The number of rows that were inserted
+	 */
+	int insertRow5(int userId, int messageId, String fileName, int fileSize, String accessDate) {
+		int count = 0;
+		try {
+			mInsertOne5.setInt(1, userId);
+			mInsertOne5.setInt(2,messageId);
+			mInsertOne5.setString(3,fileName);
+			mInsertOne5.setInt(4,fileSize);
+			mInsertOne5.setString(5,accessDate);
+			count += mInsertOne5.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return count;
+	}
+
+	/**
+	 * Query the database for a list of all subjects and their IDs
+	 * 
+	 * @return All rows, as an ArrayList
+	 */
+	ArrayList<DriveRow> selectAll5() {
+		ArrayList<DriveRow> res = new ArrayList<DriveRow>();
+		try {
+			ResultSet rs = mSelectAll5.executeQuery();
+			while (rs.next()) {
+				res.add(new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getInt("fileSize"), rs.getString("accessDate")));
+			}
+			rs.close();
+			return res;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Get all data for a specific row, by ID
+	 * 
+	 * @param id The id of the row being requested
+	 * 
+	 * @return The data for the requested row, or null if the ID was invalid
+	 */
+	DriveRow selectOne5(int id) {
+		DriveRow res = null;
+		try {
+			mSelectOne5.setInt(1, id);
+			ResultSet rs = mSelectOne5.executeQuery();
+			if (rs.next()) {
+				res = new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getInt("fileSize"), rs.getString("accessDate"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	/**
+	 * Delete a row by ID
+	 * 
+	 * @param id The id of the row to delete
+	 * 
+	 * @return The number of rows that were deleted.  -1 indicates an error.
+	 */
+	int deleteRow5(int id) {
+		int res = -1;
+		try {
+			mDeleteOne5.setInt(1, id);
+			res = mDeleteOne5.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	/**
+	 * Update the message for a row in the database
+	 * 
+	 * @param id The id of the row to update
+	 * @param fileName fileName of a message
+	 * 
+	 * 
+	 * @return The number of rows that were updated.  -1 indicates an error.
+	 */
+	int updateOne5(int id, String accessDate) {
+		int res = -1;
+		try {
+			mUpdateOne5.setInt(1, id);
+			mUpdateOne5.setString(2, accessDate);
+	
+
+			res = mUpdateOne5.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	/**
+	 * Create tblData.	If it already exists, this will print an error
+	 */
+	void createTable5() {
+		try {
+			mCreateTable5.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Remove tblData from the database.  If it does not exist, this will print
+	 * an error.
+	 */
+	void dropTable5() {
+		try {
+			mDropTable5.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }
