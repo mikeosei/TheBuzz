@@ -3,7 +3,8 @@ package edu.lehigh.cse216.csr221.admin;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-
+import com.google.api.services.drive.model.About;
+import com.google.api.services.drive.model.About.StorageQuota;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Collection;
@@ -212,7 +213,7 @@ public class App {
 
         // Current table (0 = messsageTable, 1 = CommentRow)
         int currentTable = 0;
-        
+
         Database db = Database.getDatabase(db_url); // pass the DB url
         // Start our basic command-line interpreter:
         if (db == null)
@@ -316,7 +317,9 @@ public class App {
                     Database.DriveRow res = db.selectOne5(id);
                     if (res != null) {
                         System.out.println("  [" + res.id + "] ");
-                        System.out.println("  --> userId: " + res.userId+ " messageId: " + res.messageId + " fileName: " + res.fileName + " fileSize: " + res.fileSize + " accessDate: " + res.accessDate);
+                        System.out.println("  --> userId: " + res.userId + " messageId: " + res.messageId
+                                + " fileName: " + res.fileName  + " accessDate: "
+                                + res.accessDate);
                     }
                 }
 
@@ -361,15 +364,17 @@ public class App {
                         System.out.println("  [ID # " + rd.id + "]" + "  Liked: " + rd.liked + " Disliked: "
                                 + rd.disliked + " Message Id: " + rd.messageId + " User Id: " + rd.userId);
                     }
-                
-                } else if (currentTable ==4){
+
+                } else if (currentTable == 4) {
                     ArrayList<Database.DriveRow> res = db.selectAll5();
                     if (res == null)
                         continue;
                     System.out.println("  Current Database Contents");
                     System.out.println("  -------------------------");
                     for (Database.DriveRow rd : res) {
-                        System.out.println("  [ID # " + rd.id + "]" + "  userId: " + rd.userId+ " messageId: " + rd.messageId + " fileName: " + rd.fileName + " fileSize: " + rd.fileSize + " accessDate: " + rd.accessDate);
+                        System.out.println("  [ID # " + rd.id + "]" + "  userId: " + rd.userId + " messageId: "
+                                + rd.messageId + " fileName: " + rd.fileName
+                                + " accessDate: " + rd.accessDate);
                     }
                 }
             } else if (action == '-') {
@@ -406,7 +411,38 @@ public class App {
                         continue;
                     System.out.println("  " + res + " rows deleted");
                 } else if (currentTable == 4) {
-                    int id = getInt(in, "Enter the row ID");
+                    try {
+                        SCOPES.add("https://www.googleapis.com/auth/drive");
+
+                        // 2: Build a new authorized API client service.
+                        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+
+                        // 3: Read client_secret.json file & create Credential object.
+                        GoogleCredential credential = GoogleCredential
+                                .fromStream(new FileInputStream("client_secret.json")).createScoped(SCOPES);
+
+                        // 5: Create Google Drive Service.
+                        Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                                .setApplicationName(APPLICATION_NAME).build();
+                        About about = service.about().get().setFields("storageQuota").execute();
+                        System.out.println("Current storage quota in bytes" + about.getStorageQuota().getLimit());
+                        
+                        Database.DriveRow res = db.earliestDate();
+                        if (res != null) {
+                            System.out.println("The follow row contains the earliest accessDate in driveTable: ");
+                            System.out.println("  [" + res.id + "] ");
+                            System.out.println("  --> userId: " + res.userId + " messageId: " + res.messageId
+                                    + " fileName: " + res.fileName + " accessDate: "
+                                    + res.accessDate);
+                        }
+
+                    } catch (IOException e) {
+                        System.out.println("An error occurred: " + e);
+                    } catch (GeneralSecurityException e) {
+                        e.printStackTrace();
+                    }
+
+                    int id = getInt(in, "Enter ID of row you would like to delete");
                     if (id == -1)
                         continue;
                     int res = db.deleteRow5(id);
@@ -450,13 +486,12 @@ public class App {
                     int messageId = getInt(in, "Enter the Message ID");
                     int userId = getInt(in, "Enter the User ID");
                     String fileName = getString(in, "Enter the file name");
-                    int fileSize = getInt(in, "Enter the file size");
-                    String accessDate = getString(in, "Enter the access date");
+			        
 
-                    int res = db.insertRow5(userId, messageId, fileName, fileSize, accessDate);
+                    int res = db.insertRow5(userId, messageId, fileName);
                     System.out.println(res + " rows added");
                 }
-            } 
+            }
 
         }
         // Always remember to disconnect from the database when the program

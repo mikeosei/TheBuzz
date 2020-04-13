@@ -1,5 +1,5 @@
 package edu.lehigh.cse216.csr221.admin;
-
+import java.util.Date;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.net.URISyntaxException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.sql.Timestamp;
 
 public class Database {
 	/**
@@ -198,6 +201,11 @@ public class Database {
 	private PreparedStatement mDropTable5;
 
 	/**
+	 * A prepared statement for selecting the earliestDate of a Drive access
+	 */
+	private PreparedStatement mEarliestDate;
+
+	/**
 	 * MessageRow is like a struct in C: we use it to hold data, and we allow 
 	 * direct access to its fields.  In the context of this Database, MessageRow 
 	 * represents the data we'd see in a row.
@@ -370,24 +378,20 @@ public class Database {
 		 * Name of file
 		 */
 		String fileName;
-		/**
-		 * size of file
-		 */
-		int fileSize;
+
 		/**
 		 * Date file was created
 		 */
-		String accessDate;
+		Timestamp accessDate;
 
 		/**
 		 * Construct a DriveRow object by providing values for its fields
 		 */
-		public DriveRow(int id, int userId, int messageId, String fileName, int fileSize,String accessDate) {
+		public DriveRow(int id, int userId, int messageId, String fileName,Timestamp accessDate) {
 			this.id = id;
 			this.userId = userId;
 			this.messageId = messageId;
 			this.fileName = fileName;
-			this.fileSize = fileSize;
 			this.accessDate = accessDate;
 		}
 	
@@ -522,15 +526,17 @@ public class Database {
 
 			// Statements for like/dislike table (likeTable)
 			db.mCreateTable5 = db.mConnection.prepareStatement(
-					"CREATE TABLE driveTable (id SERIAL PRIMARY KEY, userId INTEGER NOT NULL, messageId INTEGER NOT NULL, fileName VARCHAR(500) NOT NULL, fileSize INTEGER NOT NULL,accessDate VARCHAR(500) NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
+					"CREATE TABLE driveTable (id SERIAL PRIMARY KEY, userId INTEGER NOT NULL, messageId INTEGER NOT NULL, fileName VARCHAR(500) NOT NULL, accessDate TIMESTAMP NOT NULL, FOREIGN KEY (messageID) REFERENCES tblData(id) ON DELETE CASCADE, FOREIGN KEY (userId) REFERENCES userTable(id) ON DELETE CASCADE)");
 			db.mDropTable5 = db.mConnection.prepareStatement("DROP TABLE driveTable");
 
 			// Standard CRUD operations
 			db.mDeleteOne5 = db.mConnection.prepareStatement("DELETE FROM driveTable WHERE id = ?");
-			db.mInsertOne5 = db.mConnection.prepareStatement("INSERT INTO driveTable VALUES (default, ?, ?, ?, ?, ?)");
+			db.mInsertOne5 = db.mConnection.prepareStatement("INSERT INTO driveTable VALUES (default, ?, ?, ?, ?)");
 			db.mSelectAll5 = db.mConnection.prepareStatement("SELECT * FROM driveTable");
 			db.mSelectOne5 = db.mConnection.prepareStatement("SELECT * from driveTable WHERE id=?");
 			db.mUpdateOne5 = db.mConnection.prepareStatement("UPDATE driveTable SET accessDate = ?, where id=?");
+			db.mEarliestDate = db.mConnection.prepareStatement("select * from driveTable order by accessDate fetch first 1 row only");
+
 
 		} catch (SQLException e) {
 			System.err.println("Error creating prepared statement");
@@ -1092,14 +1098,14 @@ public class Database {
 	 * 
 	 * @return The number of rows that were inserted
 	 */
-	int insertRow5(int userId, int messageId, String fileName, int fileSize, String accessDate) {
+	int insertRow5(int userId, int messageId, String fileName) {
 		int count = 0;
 		try {
 			mInsertOne5.setInt(1, userId);
 			mInsertOne5.setInt(2,messageId);
 			mInsertOne5.setString(3,fileName);
-			mInsertOne5.setInt(4,fileSize);
-			mInsertOne5.setString(5,accessDate);
+			LocalDateTime time =  LocalDateTime.now(ZoneId.of( "GMT-4" ));
+			mInsertOne5.setObject(4,java.sql.Timestamp.valueOf(time));
 			count += mInsertOne5.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1117,7 +1123,7 @@ public class Database {
 		try {
 			ResultSet rs = mSelectAll5.executeQuery();
 			while (rs.next()) {
-				res.add(new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getInt("fileSize"), rs.getString("accessDate")));
+				res.add(new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getTimestamp("accessDate")));
 			}
 			rs.close();
 			return res;
@@ -1140,7 +1146,27 @@ public class Database {
 			mSelectOne5.setInt(1, id);
 			ResultSet rs = mSelectOne5.executeQuery();
 			if (rs.next()) {
-				res = new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getInt("fileSize"), rs.getString("accessDate"));
+				res = new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getTimestamp("accessDate"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	/**
+	 * Get all data for a specific row, by ID
+	 * 
+	 * @param id The id of the row being requested
+	 * 
+	 * @return The data for the requested row, or null if the ID was invalid
+	 */
+	DriveRow earliestDate() {
+		DriveRow res = null;
+		try {
+			System.out.println("howdy");
+			ResultSet rs = mEarliestDate.executeQuery();
+			if (rs.next()) {
+				res = new DriveRow(rs.getInt("id"), rs.getInt("userId"), rs.getInt("messageId"), rs.getString("fileName"), rs.getTimestamp("accessDate"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1175,11 +1201,12 @@ public class Database {
 	 * 
 	 * @return The number of rows that were updated.  -1 indicates an error.
 	 */
-	int updateOne5(int id, String accessDate) {
+	int updateOne5(int id) {
 		int res = -1;
 		try {
 			mUpdateOne5.setInt(1, id);
-			mUpdateOne5.setString(2, accessDate);
+			LocalDateTime time =  LocalDateTime.now(ZoneId.of( "GMT-4" ));
+			mInsertOne5.setObject(2,java.sql.Timestamp.valueOf(time));
 	
 
 			res = mUpdateOne5.executeUpdate();
