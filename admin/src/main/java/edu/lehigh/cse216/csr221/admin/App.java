@@ -425,15 +425,17 @@ public class App {
                         Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                                 .setApplicationName(APPLICATION_NAME).build();
                         About about = service.about().get().setFields("storageQuota").execute();
-                        System.out.println("Current storage quota in bytes" + about.getStorageQuota().getLimit());
+                        System.out.println("Current storage quota in bytes:     " + about.getStorageQuota().getLimit());
                         
                         Database.DriveRow res = db.earliestDate();
                         if (res != null) {
-                            System.out.println("The follow row contains the earliest accessDate in driveTable: ");
+                            System.out.println("The following row contains the earliest accessDate in driveTable: ");
                             System.out.println("  [" + res.id + "] ");
                             System.out.println("  --> userId: " + res.userId + " messageId: " + res.messageId
                                     + " fileName: " + res.fileName + " accessDate: "
                                     + res.accessDate);
+                            System.out.println("Consider removing row:   " + res.id);
+
                         }
 
                     } catch (IOException e) {

@@ -1207,8 +1207,6 @@ public class Database {
 			mUpdateOne5.setInt(1, id);
 			LocalDateTime time =  LocalDateTime.now(ZoneId.of( "GMT-4" ));
 			mInsertOne5.setObject(2,java.sql.Timestamp.valueOf(time));
-	
-
 			res = mUpdateOne5.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
