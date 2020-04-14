@@ -7,40 +7,35 @@ import junit.framework.TestSuite;
 /**
  * Unit test for simple App.
  */
-public class AppTest 
-    extends TestCase
-{
+public class AppTest extends TestCase {
+
     /**
      * Create the test case
      *
      * @param testName name of the test case
      */
-    public AppTest( String testName )
-    {
-        super( testName );
+    public AppTest( String testName ) {
+        super(testName);
     }
 
     /**
      * @return the suite of tests being tested
      */
-    public static Test suite()
-    {
+    public static Test suite() {
         return new TestSuite( AppTest.class );
     }
 
     /**
      * Rigourous Test :-)
      */
-    public void testApp()
-    {
+    public void testApp() {
         assertTrue( true );
     }
 
     /**
      * Test the getIntFromEnv Method
      */
-    public void testGetIntFromEnv()
-    {
+    public void testGetIntFromEnv() {
         int a = App.getIntFromEnv("PORT", 4567);
         assertEquals(4567, a);
     }
@@ -49,10 +44,8 @@ public class AppTest
     /**
      * Test the lehighEmailCheck Method
      */
-    public void testLehighEmailCheck()
-    {   
+    public void testLehighEmailCheck() {   
         String email = "mbo221@lehigh.edu";
-
         assertTrue(App.lehighEmailCheck(email));
     }
 
