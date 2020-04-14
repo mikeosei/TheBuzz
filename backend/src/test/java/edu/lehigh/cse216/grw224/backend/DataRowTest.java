@@ -32,12 +32,12 @@ public class DataRowTest extends TestCase {
         String content = "Test Content";
         int id = 17;
         DataRow d = new DataRow(id, content);
-
         assertTrue(d.mContent.equals(content));
         assertTrue(d.mId == id);
         assertTrue(d.mLikes == 0);
         assertTrue(d.mDislikes == 0);
     }
+    
 
     /**
      * Ensure that the second constructor populates every field of the object it
@@ -47,7 +47,6 @@ public class DataRowTest extends TestCase {
         String content = "Test Content";
         int id = 17;
         DataRow d = new DataRow(id, content, 3, 4);
-
         assertTrue(d.mContent.equals(content));
         assertTrue(d.mId == id);
         assertTrue(d.mLikes == 3);
