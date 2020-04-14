@@ -26,6 +26,7 @@ public class CommentViewActivity extends AppCompatActivity{
     int messageId;
     int userId;
     String sessionId;
+    String queryParam;
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -43,7 +44,8 @@ public class CommentViewActivity extends AppCompatActivity{
         messageId = getIntent().getIntExtra("MESSAGE_ID",0);
         userId = getIntent().getIntExtra("userId",0);
         sessionId = getIntent().getStringExtra("sessionId");
-        String url = "https://lilchengs.herokuapp.com/comment/" + 29;
+        queryParam = getIntent().getStringExtra("queryParam");
+        String url = "https://lilchengs.herokuapp.com/comment/" + messageId + queryParam;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -97,6 +99,7 @@ public class CommentViewActivity extends AppCompatActivity{
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
                 i.putExtra("userId",userId);
                 i.putExtra("sessionId",sessionId);
+                i.putExtra("queryParam",queryParam);
                 startActivityForResult(i, 789);
             }
         });
@@ -114,6 +117,7 @@ public class CommentViewActivity extends AppCompatActivity{
                     Intent i = new Intent(getApplicationContext(), CommentEditActivity.class);
                     i.putExtra("userId",userId);
                     i.putExtra("sessionId",sessionId);
+                    i.putExtra("queryParam",queryParam);
                     startActivityForResult(i, 789);
                 }
                 //If the comment is not the user's own, they will view the user's profile that made the comment
@@ -122,6 +126,7 @@ public class CommentViewActivity extends AppCompatActivity{
                     i.putExtra("userId", d.uId);
                     i.putExtra("userId",userId);
                     i.putExtra("sessionId",sessionId);
+                    i.putExtra("queryParam",queryParam);
                     startActivityForResult(i, 789);
                 }
             }
@@ -159,6 +164,7 @@ public class CommentViewActivity extends AppCompatActivity{
             i.putExtra("MESSAGE_ID", messageId);
             i.putExtra("userId",userId);
             i.putExtra("sessionId",sessionId);
+            i.putExtra("queryParam",queryParam);
             startActivityForResult(i, 789); // 789 is the number that will come back to us
             return true;
         }
@@ -174,14 +180,16 @@ public class CommentViewActivity extends AppCompatActivity{
             Intent profileIntent = new Intent(this, ProfileActivity.class);
             profileIntent.putExtra("userId",userId);
             profileIntent.putExtra("sessionId",sessionId);
+            profileIntent.putExtra("queryParam",queryParam);
             startActivity(profileIntent);
             return true;
         }
         //takes you to the home page
         else if (id == R.id.action_home) {
-            Intent homeIntent = new Intent(this, ProfileActivity.class);
+            Intent homeIntent = new Intent(this, MainActivity.class);
             homeIntent.putExtra("userId",userId);
             homeIntent.putExtra("sessionId",sessionId);
+            homeIntent.putExtra("queryParam",queryParam);
             startActivity(homeIntent);
         }
         return super.onOptionsItemSelected(item);

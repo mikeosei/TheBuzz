@@ -41,6 +41,8 @@ public class LoginActivity extends AppCompatActivity {
      */
     String sessionId = "";
 
+    String queryParam = "";
+
     /**
      * Request code for starting a new activity
      */
@@ -110,15 +112,15 @@ public class LoginActivity extends AppCompatActivity {
             String token = account.getIdToken();
             RequestQueue queue = VolleySingleton.getRequestQueue(this);
             Intent i = new Intent();
-            //String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
-            String url = "https://lilchengs.herokuapp.com/login";
+            String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
+            //String url = "https://lilchengs.herokuapp.com/login";
             final JSONObject loginData = new JSONObject();
             try {
                 loginData.put("access_token", token);
             }catch(final JSONException e){
                 Log.d("mfs409", "Error adding mId/mContent JSON file: " + e.getMessage());
             }
-            JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, loginData,
+            JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, null,
                     new Response.Listener<JSONObject>() {
                         /*
                         @param response represents status message that backend will return if the status is ok then we proceed
@@ -128,13 +130,18 @@ public class LoginActivity extends AppCompatActivity {
                             try {
                                 String backendResponse = response.getString("mData");
                                 JSONObject ob = new JSONObject(backendResponse);
-                                JSONArray json =  ob.getJSONArray("mData");
+                                sessionId = ob.getString("sessionId");
+                                userId = ob.getInt("userId");
+                                /*JSONArray json =  ob.getJSONArray("mData");
                                 for (int i = 0; i < json.length(); ++i) {
                                     sessionId = json.getJSONObject(i).getString("sessionId");
                                     userId = json.getJSONObject(i).getInt("userId");
-                                    Log.e("kpb222", "" + sessionId + " " + userId);
-                                    updateUI();
-                                }
+                                    /*sessionId = response.getString("sessionId");
+                                    userId = response.getInt("userId");
+
+                                }*/
+                                Log.e("kpb222", "" + sessionId + " " + userId);
+                                updateUI();
                             } catch (final JSONException e) {
                                 Log.d("kpb222", "Error parsing JSON file for POST request: " + e.getMessage());
                                 return;
@@ -148,14 +155,15 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("kpb222", "stack trace below");
                             error.printStackTrace();
                             //TODO: You shouldn't go to the main activity page upon a failed login,
-                            //TODO:but I do just so I could see other functionality. Should delete when login works correctly
-                            updateUI();
+                            //TODO:but I do just so I could see other functionality. Should delete when login works correctly\
+                            //updateUI();
                         }
                     }
                 });
+
             queue.add(requesting);
             setResult(Activity.RESULT_OK, i);
-            updateUI();
+            //updateUI();
         }
         catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
@@ -170,8 +178,10 @@ public class LoginActivity extends AppCompatActivity {
      */
     public void updateUI() {
         Intent updateIntent = new Intent(this, MainActivity.class);
+        queryParam = "?userId=" + userId + "&sessionId=" + sessionId;
         updateIntent.putExtra("userId", userId);
         updateIntent.putExtra("sessionId",sessionId);
+        updateIntent.putExtra("queryParam",queryParam);
         startActivity(updateIntent);
         setContentView(R.layout.activity_main);
     }

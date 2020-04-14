@@ -20,6 +20,7 @@ public class CommentEditActivity extends AppCompatActivity {
 
     int userId;
     String sessionId;
+    String queryParam;
 
     /*
     onCreate is where you initialize your activity
@@ -36,6 +37,7 @@ public class CommentEditActivity extends AppCompatActivity {
         Intent mIntent = getIntent();
         userId = mIntent.getIntExtra("userId",0);
         sessionId = mIntent.getStringExtra("sessionId");
+        queryParam = mIntent.getStringExtra("queryParam");
         //Obtaining the comment so that it is already entered in the text box and you don't have to start from scratch
         String commentData = mIntent.getStringExtra("commentData");
         et.append(commentData);
@@ -47,6 +49,7 @@ public class CommentEditActivity extends AppCompatActivity {
                     Intent i = new Intent();
                     i.putExtra("userId",userId);
                     i.putExtra("sessionId",sessionId);
+                    i.putExtra("queryParam",queryParam);
                     final JSONObject messageData = new JSONObject();
                     try {
                         messageData.put("mMessage", et.getText().toString());
@@ -55,7 +58,7 @@ public class CommentEditActivity extends AppCompatActivity {
                         Log.d("kpb222", "Error adding mId/mContent JSON file: " + e.getMessage());
                     }
                     //TODO: alter url as necessary
-                    String url = "https://lilchengs.herokuapp.com/messages";
+                    String url = "https://lilchengs.herokuapp.com/messages" + queryParam;
                     final JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, messageData,
                             new Response.Listener<JSONObject>() {
                                 /*

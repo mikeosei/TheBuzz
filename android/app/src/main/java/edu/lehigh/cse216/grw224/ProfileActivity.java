@@ -27,6 +27,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     int userId;
     String sessionId;
+    String queryParam;
 
     /*
     onCreate is where you initialize your activity
@@ -44,8 +45,9 @@ public class ProfileActivity extends AppCompatActivity {
         Intent mIntent = getIntent();
         userId = mIntent.getIntExtra("userId", 0);
         sessionId = mIntent.getStringExtra("sessionId");
+        queryParam = mIntent.getStringExtra("queryParam");
         //TODO: Revise url as needed
-        String url = "https://lilchengs.herokuapp.com/profile";
+        String url = "https://lilchengs.herokuapp.com/profile" + queryParam;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -112,9 +114,10 @@ public class ProfileActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_home) {
-            Intent homeIntent = new Intent(this, ProfileActivity.class);
+            Intent homeIntent = new Intent(this, MainActivity.class);
             homeIntent.putExtra("userId",userId);
             homeIntent.putExtra("sessionId",sessionId);
+            homeIntent.putExtra("queryParam",queryParam);
             startActivity(homeIntent);
             return true;
         }
