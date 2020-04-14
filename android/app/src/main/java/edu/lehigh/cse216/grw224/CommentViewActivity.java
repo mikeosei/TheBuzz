@@ -12,6 +12,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +23,10 @@ import java.util.ArrayList;
 public class CommentViewActivity extends AppCompatActivity{
 
     ArrayList<CommentsDatum> mDataComments = new ArrayList<>();
-
+    int messageId;
+    int userId;
+    String sessionId;
+    String queryParam;
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -35,7 +41,11 @@ public class CommentViewActivity extends AppCompatActivity{
         setSupportActionBar(toolbar);
         final RequestQueue queue = VolleySingleton.getRequestQueue(this);
         //TODO: change url as necessary
-        String url = "https://lilchengs.herokuapp.com/comments";
+        messageId = getIntent().getIntExtra("MESSAGE_ID",0);
+        userId = getIntent().getIntExtra("userId",0);
+        sessionId = getIntent().getStringExtra("sessionId");
+        queryParam = getIntent().getStringExtra("queryParam");
+        String url = "https://lilchengs.herokuapp.com/comment/" + messageId + queryParam;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -87,6 +97,9 @@ public class CommentViewActivity extends AppCompatActivity{
             @Override
             public void onClick(CommentsDatum d) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                i.putExtra("userId",userId);
+                i.putExtra("sessionId",sessionId);
+                i.putExtra("queryParam",queryParam);
                 startActivityForResult(i, 789);
             }
         });
@@ -102,15 +115,84 @@ public class CommentViewActivity extends AppCompatActivity{
                 //If the user is trying to edit their own comment, this if statement is followed
                 if(d.uId == LoginActivity.getUserId()){
                     Intent i = new Intent(getApplicationContext(), CommentEditActivity.class);
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
+                    i.putExtra("queryParam",queryParam);
+                    startActivityForResult(i, 789);
                 }
                 //If the comment is not the user's own, they will view the user's profile that made the comment
                 else{
                     Intent i = new Intent(getApplicationContext(), ProfileActivity.class);
                     i.putExtra("userId", d.uId);
+                    i.putExtra("userId",userId);
+                    i.putExtra("sessionId",sessionId);
+                    i.putExtra("queryParam",queryParam);
+                    startActivityForResult(i, 789);
                 }
             }
         });
 
+    }
+
+    /*
+    onCreateOptionsMenu will load the toolbar to the top of the screen
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_comment, menu);
+        return true;
+    }
+
+    /*
+    onOptionsItemSelected will give various commands for whatever button is
+    clicked on the toolbar
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Bundle extras = getIntent().getExtras();
+            String newId;
+            String newMessage;
+            JSONObject ob= new JSONObject();
+            Intent i = new Intent(getApplicationContext(), CommentActivity.class);
+            i.putExtra("MESSAGE_ID", messageId);
+            i.putExtra("userId",userId);
+            i.putExtra("sessionId",sessionId);
+            i.putExtra("queryParam",queryParam);
+            startActivityForResult(i, 789); // 789 is the number that will come back to us
+            return true;
+        }
+        //have to start LoginActivity class to access the GoogleSignInClient
+        //so you can logout the user
+        else if (id == R.id.action_logout) {
+            LoginActivity.signOut();
+            startActivity(new Intent(this, LoginActivity.class));
+            return true;
+        }
+        //takes you to the logged in user profile
+        else if (id == R.id.action_profile) {
+            Intent profileIntent = new Intent(this, ProfileActivity.class);
+            profileIntent.putExtra("userId",userId);
+            profileIntent.putExtra("sessionId",sessionId);
+            profileIntent.putExtra("queryParam",queryParam);
+            startActivity(profileIntent);
+            return true;
+        }
+        //takes you to the home page
+        else if (id == R.id.action_home) {
+            Intent homeIntent = new Intent(this, MainActivity.class);
+            homeIntent.putExtra("userId",userId);
+            homeIntent.putExtra("sessionId",sessionId);
+            homeIntent.putExtra("queryParam",queryParam);
+            startActivity(homeIntent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 }

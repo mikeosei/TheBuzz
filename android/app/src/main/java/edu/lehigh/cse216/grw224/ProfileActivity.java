@@ -25,6 +25,10 @@ public class ProfileActivity extends AppCompatActivity {
     String lastName = "";
     String email = "";
 
+    int userId;
+    String sessionId;
+    String queryParam;
+
     /*
     onCreate is where you initialize your activity
     @param savedInstanceState  if the activity is being re-initialized after previously
@@ -39,9 +43,11 @@ public class ProfileActivity extends AppCompatActivity {
         RequestQueue queue = VolleySingleton.getRequestQueue(this);
         //Obtains id of the user's profile that will be viewed
         Intent mIntent = getIntent();
-        int uId = mIntent.getIntExtra("userId", 0);
+        userId = mIntent.getIntExtra("userId", 0);
+        sessionId = mIntent.getStringExtra("sessionId");
+        queryParam = mIntent.getStringExtra("queryParam");
         //TODO: Revise url as needed
-        String url = "https://lilchengs.herokuapp.com/profile/" + uId;
+        String url = "https://lilchengs.herokuapp.com/profile" + queryParam;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -108,7 +114,11 @@ public class ProfileActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_home) {
-            startActivity(new Intent(this, MainActivity.class));
+            Intent homeIntent = new Intent(this, MainActivity.class);
+            homeIntent.putExtra("userId",userId);
+            homeIntent.putExtra("sessionId",sessionId);
+            homeIntent.putExtra("queryParam",queryParam);
+            startActivity(homeIntent);
             return true;
         }
         //have to start LoginActivity class to access the GoogleSignInClient
@@ -117,10 +127,6 @@ public class ProfileActivity extends AppCompatActivity {
             LoginActivity.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             return true;
-        }
-        //click for user to make a comment
-        else if (id == R.id.action_comment_settings) {
-            startActivity(new Intent(this, CommentActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }

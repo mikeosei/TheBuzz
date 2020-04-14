@@ -22,6 +22,7 @@ import android.view.View;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+//import android.support.v7.app.AppCompatViewInflater;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -39,6 +40,8 @@ public class LoginActivity extends AppCompatActivity {
      * sessionId of the logged in user
      */
     String sessionId = "";
+
+    String queryParam = "";
 
     /**
      * Request code for starting a new activity
@@ -59,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("585478383264-j9obqp66iqsied7br8n9c1a17b8l6ptd.apps.googleusercontent.com")
+                .requestIdToken("721614654195-cofg349cqbl2q6kajjojhiuvpqc51gp4.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.
@@ -110,6 +113,13 @@ public class LoginActivity extends AppCompatActivity {
             RequestQueue queue = VolleySingleton.getRequestQueue(this);
             Intent i = new Intent();
             String url = "https://lilchengs.herokuapp.com/login?access_token=" + token;
+            //String url = "https://lilchengs.herokuapp.com/login";
+            final JSONObject loginData = new JSONObject();
+            try {
+                loginData.put("access_token", token);
+            }catch(final JSONException e){
+                Log.d("mfs409", "Error adding mId/mContent JSON file: " + e.getMessage());
+            }
             JsonObjectRequest requesting = new JsonObjectRequest(Request.Method.POST, url, null,
                     new Response.Listener<JSONObject>() {
                         /*
@@ -120,13 +130,18 @@ public class LoginActivity extends AppCompatActivity {
                             try {
                                 String backendResponse = response.getString("mData");
                                 JSONObject ob = new JSONObject(backendResponse);
-                                JSONArray json =  ob.getJSONArray("mData");
+                                sessionId = ob.getString("sessionId");
+                                userId = ob.getInt("userId");
+                                /*JSONArray json =  ob.getJSONArray("mData");
                                 for (int i = 0; i < json.length(); ++i) {
                                     sessionId = json.getJSONObject(i).getString("sessionId");
                                     userId = json.getJSONObject(i).getInt("userId");
-                                    Log.d("kpb222", "" + sessionId + " " + userId);
-                                    updateUI();
-                                }
+                                    /*sessionId = response.getString("sessionId");
+                                    userId = response.getInt("userId");
+
+                                }*/
+                                Log.e("kpb222", "" + sessionId + " " + userId);
+                                updateUI();
                             } catch (final JSONException e) {
                                 Log.d("kpb222", "Error parsing JSON file for POST request: " + e.getMessage());
                                 return;
@@ -140,14 +155,15 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("kpb222", "stack trace below");
                             error.printStackTrace();
                             //TODO: You shouldn't go to the main activity page upon a failed login,
-                            //TODO:but I do just so I could see other functionality. Should delete when login works correctly
-                            updateUI();
+                            //TODO:but I do just so I could see other functionality. Should delete when login works correctly\
+                            //updateUI();
                         }
                     }
                 });
+
             queue.add(requesting);
             setResult(Activity.RESULT_OK, i);
-            updateUI();
+            //updateUI();
         }
         catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
@@ -161,7 +177,12 @@ public class LoginActivity extends AppCompatActivity {
     @param account  the account of the user that has logged in
      */
     public void updateUI() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent updateIntent = new Intent(this, MainActivity.class);
+        queryParam = "?userId=" + userId + "&sessionId=" + sessionId;
+        updateIntent.putExtra("userId", userId);
+        updateIntent.putExtra("sessionId",sessionId);
+        updateIntent.putExtra("queryParam",queryParam);
+        startActivity(updateIntent);
         setContentView(R.layout.activity_main);
     }
 

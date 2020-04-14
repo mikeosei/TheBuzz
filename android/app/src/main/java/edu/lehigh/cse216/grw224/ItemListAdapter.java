@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
 
-    private RequestQueue queue;
+    //private RequestQueue queue;
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -36,10 +36,11 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
     private ArrayList<Datum> mData;
     private LayoutInflater mLayoutInflater;
 
-    ItemListAdapter(Context context, ArrayList<Datum> data, RequestQueue queueIn) {
-        queue = queueIn;
+    ItemListAdapter(Context context, ArrayList<Datum> data) {
+        //queue = queueIn;
         mData = data;
-        mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.mLayoutInflater = LayoutInflater.from(context);
+        //mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -51,6 +52,10 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mLayoutInflater.inflate(R.layout.list_item, null);
         return new ViewHolder(view);
+        /*TextView v = (TextView) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.list_item, parent, false);
+        ViewHolder vh = new ViewHolder(v);
+        return vh;*/
     }
 
     @Override
@@ -61,7 +66,8 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
         holder.mContent.setText(d.mContent);
         holder.mLikes.setText(Integer.toString(d.mLikes));
         holder.mDislikes.setText(Integer.toString(d.mDislikes));
-        holder.mComment.setText("Comment View");
+        String commentView = "Comment View";
+        holder.mComment.setText(commentView);
 
         // Attach a click listener to the view we are configuring for COMMENT
         final View.OnClickListener commentListener = new View.OnClickListener() {
@@ -70,8 +76,9 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
                 mCommentListener.onClick(d);
             }
         };
-        //binds button to like listener previously created
+        //binds button to comment listener previously created
         holder.mComment.setOnClickListener(commentListener);
+
         // Attach a click listener to the view we are configuring
         final View.OnClickListener likeListener = new View.OnClickListener(){
 
@@ -131,7 +138,7 @@ class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHolder> {
     SEE final View.OnClickListener
      */
     private ClickListener mCommentListener;
-    ClickListener setCommentClickListener() {return mCommentListener;}
+    ClickListener getCommentClickListener() {return mCommentListener;}
     void setCommentClickListener(ClickListener c) { mCommentListener = c;}
 
 }

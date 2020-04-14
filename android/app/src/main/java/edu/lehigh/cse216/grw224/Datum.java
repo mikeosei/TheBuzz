@@ -21,6 +21,8 @@ public class Datum {
      */
     int mDislikes;
 
+    String mComment = "test";
+
     /**
      * Construct a Datum by setting its index and text
      *
